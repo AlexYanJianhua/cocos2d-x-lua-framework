@@ -224,6 +224,7 @@ function new(args)
     function view:enable()
         if enterFrameHandle then return end
         self:addTouchEventListener(onTouch)
+        self:setIsTouchEnabled(true)
         enterFrameHandle = scheduler.enterFrame(onEnterFrame)
     end
 
