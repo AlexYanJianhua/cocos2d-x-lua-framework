@@ -1,23 +1,24 @@
 
+
+
 module("qeeplay", package.seeall)
-require("qeeplay.debug")
+require("qeeplay.support.debug")
 
 log.warning("")
 log.warning("# debug                        = "..DEBUG)
 log.warning("#")
 
-require("qeeplay.device")
-require("qeeplay.functions")
-require("qeeplay.director")
-require("qeeplay.display")
-require("qeeplay.scheduler")
-require("qeeplay.transition")
-require("qeeplay.ui")
-require("qeeplay.ui")
-require("qeeplay.audio")
-require("qeeplay.json")
-require("qeeplay.network")
-require("qeeplay.localize")
+require("qeeplay.support.device")
+require("qeeplay.support.functions")
+require("qeeplay.support.director")
+require("qeeplay.support.display")
+require("qeeplay.support.scheduler")
+require("qeeplay.support.transition")
+require("qeeplay.support.ui")
+require("qeeplay.support.audio")
+require("qeeplay.support.json")
+require("qeeplay.support.network")
+require("qeeplay.support.localize")
 
 
 local timeCount = 0
@@ -27,8 +28,7 @@ local function checkMemory(dt)
                         timeCount,
                         tonumber(collectgarbage("count"))))
 end
--- scheduler.schedule(checkMemory, 1.0)
+if DEBUG > 1 then scheduler.schedule(checkMemory, 10.0) end
 
--- 设定垃圾回收参数
 collectgarbage("setpause", 150)
 collectgarbage("setstepmul", 1000)

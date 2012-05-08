@@ -13,3 +13,8 @@ log.error   = prt
 
 if DEBUG > 0 then log.warning = prt end
 if DEBUG > 1 then log.notice = prt end
+
+
+function trackback()
+    print(debug.traceback())
+end

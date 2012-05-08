@@ -82,13 +82,27 @@ function moveTo(target, args)
     return to(target, action, args)
 end
 
+function moveBy(target, args)
+    local x = args.x or target.x
+    local y = args.y or target.y
+    local action = CCMoveBy:actionWithDuration(args.time or 0.2, ccp(x, y))
+    return to(target, action, args)
+end
+
 function fadeIn(target, args)
     local action = CCFadeIn:actionWithDuration(args.time or 0.2)
+    target.opacity = 0
     return to(target, action, args)
 end
 
 function fadeOut(target, args)
     local action = CCFadeOut:actionWithDuration(args.time or 0.2)
+    target.opacity = 255
+    return to(target, action, args)
+end
+
+function fadeTo(target, args)
+    local action = CCFadeTo:actionWithDuration(args.time or 0.2, args.opacity or 0)
     return to(target, action, args)
 end
 
@@ -109,5 +123,5 @@ function newSequence(actions)
     for i = 1, #actions do
         arr:addObject(actions[i])
     end
-    return CCSequence:actionsWithArray(arr)
+    return CCSequence:actionsWithArrayLua(arr)
 end

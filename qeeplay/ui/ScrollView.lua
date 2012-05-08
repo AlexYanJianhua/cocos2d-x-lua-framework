@@ -9,6 +9,7 @@ function new(args)
     view.marginTop          = 0
     view.marginBottom       = 0
     view.items              = {}
+    view.isEnabled          = false
 
     ----
 
@@ -66,6 +67,7 @@ function new(args)
     end
 
     local function onTouch(event, x, y)
+        if not view.isEnabled then return false end
         if event == CCTOUCHBEGAN then
             if y > validTouchTop or y < validTouchBottom then return false end
 
@@ -189,24 +191,25 @@ function new(args)
     function view:addItem(item)
         item.y = sumHeight
         layer:addChild(item)
-        self.items[#self.items + 1] = item
+        item.scrollView = view
+        view.items[#view.items + 1] = item
         setSumHeight()
     end
 
     -- 滚动到指定的条目，确保该条目完整显示在屏幕上
     function view:scrollToItem(itemIndex)
-        if itemIndex < 1 or itemIndex > #self.items then return end
+        if itemIndex < 1 or itemIndex > #view.items then return end
 
         setSumHeight()
 
         local top    = 0
         local bottom = 0
-        for i = 1, #self.items do
+        for i = 1, #view.items do
             if i == itemIndex then
-                bottom = top - self.items[i].itemHeight
+                bottom = top - view.items[i].itemHeight
                 break
             else
-                top = top - self.items[i].itemHeight
+                top = top - view.items[i].itemHeight
             end
         end
 
@@ -221,16 +224,21 @@ function new(args)
         end
     end
 
-    function view:enable()
+    function view:prepare()
         if enterFrameHandle then return end
-        self:addTouchEventListener(onTouch)
-        self:setIsTouchEnabled(true)
+        view:addTouchEventListener(onTouch)
+        view:setIsTouchEnabled(true)
         enterFrameHandle = scheduler.enterFrame(onEnterFrame)
     end
 
+    function view:enable()
+        view.isEnabled = true
+    end
+
     function view:disable()
-        self:removeTouchEventListener()
-        scheduler.remove(enterFrameHandle)
+        view.isEnabled = false
+        -- view:removeTouchEventListener()
+        -- scheduler.remove(enterFrameHandle)
     end
 
     ----

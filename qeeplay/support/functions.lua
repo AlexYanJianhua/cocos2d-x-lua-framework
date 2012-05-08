@@ -110,6 +110,10 @@ end
 
 -- count all elements in an table
 table.nums = function(t)
+    if type(t) ~= "table" then
+        if DEBUG > 0 then trackback() end
+        return nil
+    end
     local nums = 0
     for k, v in pairs(t) do
         nums = nums + 1
@@ -140,31 +144,30 @@ clone = function(object)
 end
 
 -- prints human-readable information about a variable
-dump = function(object, label, nesting)
+dump = function(object, label, nesting, nest)
     if type(nesting) ~= "number" then nesting = 99 end
 
-    local nest = 0
     local lookup_table = {}
-    local function _dump(object, label, indent)
+    local function _dump(object, label, indent, nest)
         label = label or "<var>"
         if type(object) ~= "table" then
-            print(string.format("%s%s = %s", indent, label, tostring(object)))
+            print(string.format("%s%s = %s", indent, tostring(label), tostring(object)..""))
         elseif lookup_table[object] then
-            print(string.format("%s%s = *REF*", indent, label))
+            print(string.format("%s%s = *REF*", indent, tostring(label)))
         else
             lookup_table[object] = true
-            nest = nest + 1
             if nest > nesting then
                 print(string.format("%s%s = *MAX NESTING*", indent, label))
             else
-                print(string.format("%s%s = {", indent, label))
+                print(string.format("%s%s = {", indent, tostring(label)))
                 local indent2 = indent.."    "
                 for k, v in pairs(object) do
-                    _dump(v, k, indent2)
+                    _dump(v, k, indent2, nest + 1)
                 end
                 print(string.format("%s}", indent))
             end
         end
     end
-    _dump(object, label, "- ")
+    _dump(object, label, "- ", 1)
 end
+

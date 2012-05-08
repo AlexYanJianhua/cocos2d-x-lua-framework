@@ -58,11 +58,22 @@ function newMenuItemImage(args)
     return item
 end
 
-function newBMFontLabel(string, font, x, y)
-    string = tostring(string)
-    local label = CCLabelBMFont:labelWithString(string, font)
+function newBMFontLabel(text, font, x, y)
+    text = tostring(text)
+    local label = CCLabelBMFont:labelWithString(text, font)
     if label then
         display._setNodeMethods(label)
+        if x and y then label:setPosition(x, y) end
+    end
+    return label
+end
+
+function newTTFLabel(text, font, size, color, x, y)
+    text = tostring(text)
+    local label = CCLabelTTF:labelWithString(text, font, size)
+    if label then
+        display._setNodeMethods(label)
+        label:setColor(color)
         if x and y then label:setPosition(x, y) end
     end
     return label
