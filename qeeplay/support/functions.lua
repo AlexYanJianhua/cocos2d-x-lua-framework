@@ -6,6 +6,7 @@ math.round = function(num)
 end
 
 math.comma = function(num)
+    if type(tonumber(num)) ~= "number" then num = 0 end
     local formatted = tostring(num)
     while true do
         formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
@@ -135,8 +136,8 @@ clone = function(object)
         end
         local new_table = {}
         lookup_table[object] = new_table
-        for index, value in pairs(object) do
-            new_table[_copy(index)] = _copy(value)
+        for key, value in pairs(object) do
+            new_table[_copy(key)] = _copy(value)
         end
         return setmetatable(new_table, getmetatable(object))
     end

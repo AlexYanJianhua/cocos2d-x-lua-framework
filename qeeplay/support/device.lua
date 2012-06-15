@@ -4,10 +4,10 @@ module("device", package.seeall)
 local director = CCDirector:sharedDirector()
 
 ----
+
 host = "ios"
 model = "iphone"
 platform = "ios"
-
 
 -- landscape, landscape_right
 -- landscape_left
@@ -67,8 +67,8 @@ else
     end
 end
 
-
 ----
+
 local _language = CCApplication:getCurrentLanguage()
 if _language == kLanguageChinese then
     language = "cn"
@@ -88,8 +88,8 @@ end
 
 writeablePath = CCFileUtils:getWriteablePath()
 
-
 ----
+
 log.warning("# device.host                  = "..host)
 log.warning("# device.model                 = "..model)
 log.warning("# device.platform              = "..platform)

@@ -52,7 +52,7 @@ function newMenuItemImage(args)
     if item then
         item.menuItemTag = menuItemTag
         display._setSpriteMethods(item)
-        if listener then item:registerScriptHandler(listener) end
+        if listener then item:registerScriptTapHandler(listener) end
         if x and y then item:setPosition(x, y) end
     end
     return item

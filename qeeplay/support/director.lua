@@ -74,6 +74,18 @@ function replaceScene(nextScene, transition_, transitionTime, more)
     end
 end
 
+function getRunningScene()
+    return director:getRunningScene()
+end
+
+function pause()
+    director:pause()
+end
+
+function resume()
+    director:resume()
+end
+
 ----
 
 function newSceneWithTransition(scene, transitionName, time, more)
