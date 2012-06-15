@@ -1,5 +1,27 @@
 
--- module("network", package.seeall)
+module("network", package.seeall)
+
+
+function isLocalWiFiAvailable()
+    return CCNetwork:isLocalWiFiAvailable()
+end
+
+function isInternetConnectionAvailable()
+    return CCNetwork:isInternetConnectionAvailable()
+end
+
+function isHostNameReachable(hostname)
+    if type(hostname) ~= "string" then
+        log.error("[native] ERR, isHostNameReachable() invalid hostname")
+        return false
+    end
+    return CCNetwork:isHostNameReachable(hostname)
+end
+
+function getInternetConnectionStatus()
+    return CCNetwork:getInternetConnectionStatus()
+end
+
 -- local _llthreads = require("llthreads")
 -- local _url       = require("socket.url")
 -- local _http      = require("socket.http")
