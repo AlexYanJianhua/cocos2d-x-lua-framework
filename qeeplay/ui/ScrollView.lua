@@ -1,5 +1,6 @@
 
 module("ui.ScrollView", package.seeall)
+require("qeeplay.api.EventProtocol")
 
 local SCROLL_TO_VALID_RANGE_SPEED = 400
 
@@ -63,6 +64,13 @@ function new(args)
             swiping.speed = swiping.speed * 0.5;
         else
             swiping.speed = swiping.speed * 0.9;
+        end
+    end
+
+    local function cleanup()
+        view:removeTouchEventListener()
+        if enterFrameHandle then
+            scheduler.remove(enterFrameHandle)
         end
     end
 
@@ -130,9 +138,7 @@ function new(args)
             for i = 1, #view.items do
                 local item = view.items[i]
                 if y <= offset and y >= offset - item.itemHeight + 1 then
-                    if type(item.onItemTap) == "function" then
-                        item:onItemTap(view, i)
-                    end
+                    item:dispatchEvent({name = "tap", target = item})
                     break
                 end
                 offset = offset - item.itemHeight
@@ -184,16 +190,47 @@ function new(args)
         validTouchHeight = validTouchTop - validTouchBottom + 1
 
         setSumHeight()
+
+        view:registerScriptHandler(cleanup)
     end
 
     ----
 
     function view:addItem(item)
         item.y = sumHeight
-        layer:addChild(item)
-        item.scrollView = view
         view.items[#view.items + 1] = item
+        item.itemIndex = #view.items
+        layer:addChild(item)
         setSumHeight()
+
+        return item.itemIndex
+    end
+
+    function view:removeItem(itemIndex)
+        for i = 1, #view.items do
+            if i == itemIndex then
+                view.items[i]:removeSelf()
+                table.remove(view.items, i)
+
+                for j = i, #view.items do
+                    view.items[j].itemIndex = j
+                end
+
+                return true
+            end
+        end
+        return false
+    end
+
+    function view:getItem(itemIndex)
+        if itemIndex >= 1 and itemIndex <= #view.items then
+            return view.items[itemIndex]
+        end
+        return false
+    end
+
+    function view:getItemsCount()
+        return #view.items
     end
 
     -- 滚动到指定的条目，确保该条目完整显示在屏幕上
@@ -237,8 +274,19 @@ function new(args)
 
     function view:disable()
         view.isEnabled = false
-        -- view:removeTouchEventListener()
-        -- scheduler.remove(enterFrameHandle)
+    end
+
+    function view:newItem(params)
+        if type(params) ~= "table" then params = {} end
+        if type(params.height) ~= "number" then params.height = 40 end
+
+        local item = display.newGroup()
+        qeeplay.api.EventProtocol.extend(item)
+        item.scrollView = view
+        item.itemHeight = params.height
+        item.itemIndex  = 0
+
+        return item
     end
 
     ----
