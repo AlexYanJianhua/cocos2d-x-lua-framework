@@ -20,8 +20,8 @@ height            = size.height
 centerX           = width / 2
 centerY           = height / 2
 left              = 0
-right             = width
-top               = height
+right             = width - 1
+top               = height - 1
 bottom            = 0
 sizeInPixels      = director.director:getWinSizeInPixels()
 widthInPixels     = sizeInPixels.width
@@ -29,6 +29,9 @@ heightInPixels    = sizeInPixels.height
 centerXInPixels   = widthInPixels / 2
 centerYInPixels   = heightInPixels / 2
 animationInterval = director.director:getAnimationInterval()
+
+COLOR_WHITE = ccc3(255, 255, 255)
+COLOR_BLACK = ccc3(0, 0, 0)
 
 log.warning("# display.scale                = "..scale)
 log.warning("# display.width                = "..width)
@@ -110,7 +113,7 @@ function newSprite(filename, x, y, bypassAutoHD)
     end
 
     if sprite == nil then
-        log.error("NOT FOUND IMAGE: %s", filename)
+        log.error("[display] ERR, newSprite() not found image: %s", filename)
     end
 
     return _returnSprite(sprite, x, y)
