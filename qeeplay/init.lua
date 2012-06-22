@@ -24,7 +24,7 @@ local timeCount = 0
 local function checkMemory(dt)
     timeCount = timeCount + dt
     local used = tonumber(collectgarbage("count"))
-    print(string.format("[LUA] MEMORY USED: %0.2f KB, UPTIME: %04.2fs", used, timeCount))
+    ccprintf(string.format("[LUA] MEMORY USED: %0.2f KB, UPTIME: %04.2fs", used, timeCount))
 end
 if DEBUG > 1 then scheduler.schedule(checkMemory, 10.0) end
 

@@ -110,11 +110,11 @@ end
 function _returnScene(scene)
     local function sceneEventHandler(eventType)
         if eventType == kCCNodeOnEnter then
-            print(string.format("## Scene \"%s:onEnter()\"", scene.name))
+            ccprintf(string.format("## Scene \"%s:onEnter()\"", scene.name))
             scene.isTouchEnabled = true
             if scene.onEnter then scene:onEnter() end
         else
-            print(string.format("## Scene \"%s:onExit()\"", scene.name))
+            ccprintf(string.format("## Scene \"%s:onExit()\"", scene.name))
             scene.isTouchEnabled = false
             if scene.onExit then scene:onExit() end
         end

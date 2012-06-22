@@ -20,12 +20,13 @@ end
 
 function playMusic(filename, isLoop)
     if not isEnabled then return end
-    engine:playBackgroundMusic(filename, isLoop or true)
+    if type(isLoop) ~= "boolean" then isLoop = true end
+    engine:playBackgroundMusic(filename, isLoop)
 end
 
 function stopMusic(isReleaseData)
     if not isEnabled then return end
-    isReleaseData = isReleaseData or false
+    if type(isReleaseData) ~= "boolean" then isReleaseData = false end
     engine:stopBackgroundMusic(isReleaseData)
 end
 
@@ -94,7 +95,8 @@ end
 
 function playEffect(filename, isLoop)
     if not isEnabled then return end
-    return engine:playEffect(filename, isLoop or false)
+    if type(isLoop) ~= "boolean" then isLoop = false end
+    return engine:playEffect(filename, isLoop)
 end
 
 function stopEffect(handle)
@@ -126,8 +128,7 @@ function fadeMusicVolumeTo(time, volume)
 
     local function changeVolumeStep()
         currentVolume = currentVolume + stepVolume
-        if (isIncr and currentVolume >= volume)
-           or (not isIncr and currentVolume <= volume) then
+        if (isIncr and currentVolume >= volume) or (not isIncr and currentVolume <= volume) then
             currentVolume = volume
             scheduler.remove(handleFadeMusicVolumeTo)
         end
@@ -138,14 +139,14 @@ function fadeMusicVolumeTo(time, volume)
 end
 
 local handleFadeToMusic = nil
-function fadeToMusic(music, time, volume)
+function fadeToMusic(music, time, volume, isLoop)
     if not isEnabled then return end
     if handleFadeToMusic then scheduler.remove(handleFadeToMusic) end
     time = time / 2
     if type(volume) ~= "number" then volume = 1.0 end
     fadeMusicVolumeTo(volume, 0)
     handleFadeToMusic = scheduler.performWithDelay(time + 0.1, function()
-        playMusic(music)
+        playMusic(music, isLoop)
         fadeMusicVolumeTo(time, volume)
     end)
 end

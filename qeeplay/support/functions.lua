@@ -152,20 +152,20 @@ dump = function(object, label, nesting, nest)
     local function _dump(object, label, indent, nest)
         label = label or "<var>"
         if type(object) ~= "table" then
-            print(string.format("%s%s = %s", indent, tostring(label), tostring(object)..""))
+            ccprintf(string.format("%s%s = %s", indent, tostring(label), tostring(object)..""))
         elseif lookup_table[object] then
-            print(string.format("%s%s = *REF*", indent, tostring(label)))
+            ccprintf(string.format("%s%s = *REF*", indent, tostring(label)))
         else
             lookup_table[object] = true
             if nest > nesting then
-                print(string.format("%s%s = *MAX NESTING*", indent, label))
+                ccprintf(string.format("%s%s = *MAX NESTING*", indent, label))
             else
-                print(string.format("%s%s = {", indent, tostring(label)))
+                ccprintf(string.format("%s%s = {", indent, tostring(label)))
                 local indent2 = indent.."    "
                 for k, v in pairs(object) do
                     _dump(v, k, indent2, nest + 1)
                 end
-                print(string.format("%s}", indent))
+                ccprintf(string.format("%s}", indent))
             end
         end
     end
