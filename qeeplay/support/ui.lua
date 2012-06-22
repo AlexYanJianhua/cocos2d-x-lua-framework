@@ -1,42 +1,46 @@
 
 module("ui", package.seeall)
 
-TOUCH_BEGAN = CCTOUCHBEGAN
-TOUCH_MOVED = CCTOUCHMOVED
-TOUCH_ENDED = CCTOUCHENDED
+TOUCH_BEGAN     = CCTOUCHBEGAN
+TOUCH_MOVED     = CCTOUCHMOVED
+TOUCH_ENDED     = CCTOUCHENDED
 TOUCH_CANCELLED = CCTOUCHCANCELLED
 
-local globalMenuItemTag = 0
+DEFAULT_TTF_FONT      = "Arial"
+DEFAULT_TTF_FONT_SIZE = 16
 
-function newMenu(items, x, y)
+function newMenu(...)
     local menu
     menu = CCMenu:node()
-    _setMenuMethods(menu)
+    display._setNodeMethods(menu)
 
-    if type(items) == "table" then
-        for k, item in pairs(items) do
-            menu:addChild(item)
+    local item = select(1, ...)
+    local items = {}
+
+    if type(item) ~= "table" then
+        for i = 1, select("#", ...) do
+            items[i] = select(i, ...)
         end
+    else
+        items = item
     end
 
-    x = x or 0
-    y = y or 0
-    menu:setPosition(x, y)
+    for k, item in pairs(items) do
+        menu:addChild(item)
+    end
+
+    menu:setPosition(0, 0)
     return menu
 end
 
-function newMenuItemImage(args)
-    local imageNormal   = args.image
-    local imageDown     = args.imageDown
-    local imageDisabled = args.imageDisabled
-    local listener      = args.listener
-    local x             = args.x
-    local y             = args.y
+function newMenuItemImage(params)
+    local imageNormal   = params.image
+    local imageDown     = params.imageDown
+    local imageDisabled = params.imageDisabled
+    local listener      = params.listener
+    local x             = params.x
+    local y             = params.y
 
-    globalMenuItemTag = globalMenuItemTag + 1
-    local menuItemTag = args.tag or globalMenuItemTag
-
-    local item
     if type(imageNormal) == "string" then
         imageNormal = display.newImage(imageNormal)
     end
@@ -48,29 +52,44 @@ function newMenuItemImage(args)
         imageDisabled = display.newImage(imageDisabled)
     end
 
-    item = CCMenuItemSprite:itemFromNormalSprite(imageNormal, imageDown, imageDisabled)
+    local item = CCMenuItemSprite:itemFromNormalSprite(imageNormal, imageDown, imageDisabled)
     if item then
-        item.menuItemTag = menuItemTag
         display._setSpriteMethods(item)
-        if listener then item:registerScriptTapHandler(listener) end
+        if type(listener) == "function" then item:registerScriptTapHandler(listener) end
         if x and y then item:setPosition(x, y) end
     end
     return item
 end
 
-function newBMFontLabel(text, font, x, y)
+function newBMFontLabel(text, font, x, y, align)
     text = tostring(text)
     local label = CCLabelBMFont:labelWithString(text, font)
-    if label then
-        display._setNodeMethods(label)
-        if x and y then label:setPosition(x, y) end
+    if label then display._setNodeMethods(label) end
+    if type(x) == "number" and type(y) == "number" then
+        if align then
+            label:align(align, x, y)
+        else
+            label:setPosition(x, y)
+        end
     end
     return label
 end
 
-function newTTFLabel(text, font, size, color, x, y)
-    text = tostring(text)
-    local label = CCLabelTTF:labelWithString(text, font, size)
+function newTTFLabel(params)
+    ccassert(type(params) == "table",
+             "[framework.support.ui] newTTFLabel() invalid params")
+
+    local text = tostring(params.text)
+    local font = params.font or DEFAULT_TTF_FONT
+    local size = params.size or DEFAULT_TTF_FONT_SIZE
+    local color = params.color or display.COLOR_WHITE
+    local align = params.align or display.LEFT_CENTER
+    local x, y = params.x, params.y
+
+    ccassert(type(size) == "number",
+             "[framework.support.ui] newTTFLabel() invalid params.size")
+
+    local label = CCLabelTTF:labelWithString(text, tostring(font), size)
     if label then
         display._setNodeMethods(label)
         label:setColor(color)
@@ -79,14 +98,56 @@ function newTTFLabel(text, font, size, color, x, y)
     return label
 end
 
-----
+function newTTFLabelWithShadow(params)
+    ccassert(type(params) == "table",
+             "[framework.support.ui] newTTFLabelWithShadow() invalid params")
 
-function _setMenuMethods(menu)
-    menu.addChild_ = menu.addChild
-    function menu:addChild(child)
-        self:addChild_(child)
-        if child.menuItemTag then child.tag = child.menuItemTag end
+    local text = tostring(params.text)
+    local font = params.font or DEFAULT_TTF_FONT
+    local size = params.size or DEFAULT_TTF_FONT_SIZE
+    local color = params.color or display.COLOR_WHITE
+    local shadowColor = params.shadowColor or display.COLOR_BLACK
+    local align = params.align or display.LEFT_CENTER
+    local x, y = params.x, params.y
+
+    ccassert(type(size) == "number",
+             "[framework.support.ui] newTTFLabelWithShadow() invalid params.size")
+
+    local g = display.newGroup()
+    local shadow = newTTFLabel({
+        text = text,
+        font = font,
+        size = size,
+        color = shadowColor
+    })
+    shadow:align(align, 0.5, -0.5)
+    g:addChild(shadow)
+    g.shadow = shadow
+
+    local label = newTTFLabel({
+        text = text,
+        font = font,
+        size = size,
+        color = color
+    })
+    label:align(align, 0, 0)
+    g:addChild(label)
+    g.label = label
+
+    function g:setString(text)
+        g.shadow:setString(text)
+        g.label:setString(text)
     end
 
-    display._setNodeMethods(menu)
+    g.align_ = g.align
+    function g:align(align, x, y)
+        g.shadow:align(align, 0.5, -0.5)
+        g.label:align(align, 0, 0)
+        g:setPosition(x, y)
+    end
+
+    g.contentSize = g.label.contentSize
+
+    if x and y then g:align(align, x, y) end
+    return g
 end
