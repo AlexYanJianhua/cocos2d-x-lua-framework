@@ -6,20 +6,11 @@ function new()
 
     ----
 
-    local isReady = false
-
-    ----
-
     function openfeint:init(params)
         CCOpenFeint:postInitWithProductKey(params.productKey,
                                            params.secret,
                                            params.displayName)
-        isReady = true
         return true
-    end
-
-    function openfeint:isReady()
-        return isReady
     end
 
     function openfeint:request(name, params)
@@ -72,7 +63,7 @@ function new()
         if name == "LEADERBOARDS" and #params < 1 then
             CCOpenFeint:showLeaderboards()
 
-        elseif name == "LEADERBOARDS" then
+        elseif name == "LEADERBOARD" then
             local leaderboardId = params[1]
             if type(leaderboardId) ~= "string" then
                 log.error("[qeeplay.api.GameNetwork.OpenFeint] ERR, show(%s) %s",
