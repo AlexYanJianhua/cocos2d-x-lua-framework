@@ -1,26 +1,30 @@
 
-module("scheduler", package.seeall)
+local M = {}
 
-scheduler = CCScheduler:sharedScheduler()
+local sharedScheduler = CCScheduler:sharedScheduler()
 
-function enterFrame(listener, isPaused)
-    return scheduler:scheduleScriptFunc(listener, 0, isPaused or false)
+function M.enterFrame(listener, isPaused)
+    if type(isPaused) ~= "boolean" then isPaused = false end
+    return sharedScheduler:scheduleScriptFunc(listener, 0, isPaused)
 end
 
-function schedule(listener, interval, isPaused)
-    return scheduler:scheduleScriptFunc(listener, interval, isPaused or false)
+function M.schedule(listener, interval, isPaused)
+    if type(isPaused) ~= "boolean" then isPaused = false end
+    return sharedScheduler:scheduleScriptFunc(listener, interval, isPaused)
 end
 
-function unschedule(handle)
-    scheduler:unscheduleScriptEntry(handle)
+function M.unschedule(handle)
+    sharedScheduler:unscheduleScriptEntry(handle)
 end
-remove = unschedule
+M.remove = M.unschedule
 
-function performWithDelay(time, listener)
+function M.performWithDelay(time, listener)
     local handle
-    handle = scheduler:scheduleScriptFunc(function()
-        scheduler:unscheduleScriptEntry(handle)
+    handle = sharedScheduler:scheduleScriptFunc(function()
+        sharedScheduler:unscheduleScriptEntry(handle)
         listener()
     end, time, false)
     return handle
 end
+
+return M

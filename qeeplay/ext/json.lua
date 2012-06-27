@@ -1,19 +1,22 @@
 
-module("json", package.seeall)
+local M = {}
+
 local cjson = require("cjson")
 local _encode = cjson.encode
 local _decode = cjson.decode
 
-function encode(var)
+function M.encode(var)
     local status, result = pcall(_encode, var)
     if status then return result end
-    log.warning("[JSON ENCODE] %s", result)
+    ccwarning("[JSON ENCODE] %s", result)
     return nil
 end
 
-function decode(text)
+function M.decode(text)
     local status, result = pcall(_decode, text)
     if status then return result end
-    log.warning("[JSON DECODE] %s", result)
+    ccwarning("[JSON DECODE] %s", result)
     return nil
 end
+
+return M

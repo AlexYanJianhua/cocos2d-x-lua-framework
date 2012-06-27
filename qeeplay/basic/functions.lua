@@ -112,7 +112,7 @@ end
 -- count all elements in an table
 table.nums = function(t)
     if type(t) ~= "table" then
-        if DEBUG > 0 then trackback() end
+        if DEBUG > 0 then traceback() end
         return nil
     end
     local nums = 0
@@ -126,7 +126,7 @@ end
 ---- global functions
 
 -- clones object
-clone = function(object)
+function clone(object)
     local lookup_table = {}
     local function _copy(object)
         if type(object) ~= "table" then
@@ -143,32 +143,3 @@ clone = function(object)
     end
     return _copy(object)
 end
-
--- prints human-readable information about a variable
-dump = function(object, label, nesting, nest)
-    if type(nesting) ~= "number" then nesting = 99 end
-
-    local lookup_table = {}
-    local function _dump(object, label, indent, nest)
-        label = label or "<var>"
-        if type(object) ~= "table" then
-            ccprintf(string.format("%s%s = %s", indent, tostring(label), tostring(object)..""))
-        elseif lookup_table[object] then
-            ccprintf(string.format("%s%s = *REF*", indent, tostring(label)))
-        else
-            lookup_table[object] = true
-            if nest > nesting then
-                ccprintf(string.format("%s%s = *MAX NESTING*", indent, label))
-            else
-                ccprintf(string.format("%s%s = {", indent, tostring(label)))
-                local indent2 = indent.."    "
-                for k, v in pairs(object) do
-                    _dump(v, k, indent2, nest + 1)
-                end
-                ccprintf(string.format("%s}", indent))
-            end
-        end
-    end
-    _dump(object, label, "- ", 1)
-end
-

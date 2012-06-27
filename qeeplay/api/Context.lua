@@ -1,26 +1,26 @@
 
-module(..., package.seeall)
-require("qeeplay.api.EventProtocol")
+local M = {}
 
---[[ 提供事件注册、触发服务，以及配置管理的模块
-]]
-function new()
+local eventProtocol = require("qeeplay.api.EventProtocol")
+
+function M.new()
     local context = {}
 
     ----
 
-    local config = {}       -- 所有的设置
+    local config = {}
 
     ----
 
     local function init()
-        qeeplay.api.EventProtocol.extend(context)
+        eventProtocol.extend(context)
     end
 
     ----
 
-    --[[ 查询 key 指定键名的设置，如果设置不存在则返回 defaultValue 参数指定的默认值
-    用法：
+    --[[ Get value by key, return default value when key not exist
+
+    Usage:
         local numOfEnemys = context:getConfig("NUM_OF_ENEMYS", 10)
     ]]
     function context:getConfig(key, defaultValue)
@@ -28,8 +28,9 @@ function new()
         return defaultValue
     end
 
-    --[[ 修改指定键名的设置
-    用法：
+    --[[ Set value by key
+
+    Usage:
         context:setConfig("NUM_OF_ENEMYS", 15)
     ]]
     function context:setConfig(key, value)
@@ -41,3 +42,5 @@ function new()
     init()
     return context
 end
+
+return M

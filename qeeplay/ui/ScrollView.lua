@@ -1,10 +1,11 @@
 
-module("ui.ScrollView", package.seeall)
-require("qeeplay.api.EventProtocol")
+local M = {}
+
+local EventProtocol = require("qeeplay.api.EventProtocol")
 
 local SCROLL_TO_VALID_RANGE_SPEED = 400
 
-function new(args)
+function M.new(args)
     local view = display.newLayer()
 
     view.marginTop          = 0
@@ -31,10 +32,10 @@ function new(args)
 
     local function snapLayer(isAutoScroll)
         local ny = layer.y
-        if layer.y < layer.minY then
-            ny = layer.minY
-        elseif layer.y > layer.maxY then
-            ny = layer.maxY
+        if layer.y < layer.topY then
+            ny = layer.topY
+        elseif layer.y > layer.bottomY then
+            ny = layer.bottomY
         end
 
         if layer.y ~= ny then
@@ -60,7 +61,7 @@ function new(args)
         if moving < 1 then
             swiping = nil
             snapLayer(true)
-        elseif layer.y < layer.minY or layer.y > layer.maxY then
+        elseif layer.y < layer.topY or layer.y > layer.bottomY then
             swiping.speed = swiping.speed * 0.5;
         else
             swiping.speed = swiping.speed * 0.9;
@@ -120,11 +121,11 @@ function new(args)
 
             if not touch.isMaybeTap then
                 local ny = touch.initLayerY + (y - touch.initTouchY)
-                if ny < layer.minY - validTouchHeight / 2 then
-                    ny = layer.minY - validTouchHeight / 2
+                if ny < layer.topY - validTouchHeight / 2 then
+                    ny = layer.topY - validTouchHeight / 2
                 end
-                if ny > layer.maxY + validTouchHeight / 2 then
-                    ny = layer.maxY + validTouchHeight / 2
+                if ny > layer.bottomY + validTouchHeight / 2 then
+                    ny = layer.bottomY + validTouchHeight / 2
                 end
                 layer.y = ny
             end
@@ -135,10 +136,9 @@ function new(args)
         if event == CCTOUCHENDED and touch.isMaybeTap then
             -- tap 事件，确定触发哪一个条目的 listener
             local offset = view.y + layer.y
-            for i = 1, #view.items do
-                local item = view.items[i]
+            for i, item in ipairs(view.items) do
                 if y <= offset and y >= offset - item.itemHeight + 1 then
-                    item:dispatchEvent({name = "tap", target = item})
+                    item:dispatchEvent({name = "tap"})
                     break
                 end
                 offset = offset - item.itemHeight
@@ -147,7 +147,7 @@ function new(args)
             return false
         end
 
-        if layer.y <= layer.minY or layer.y >= layer.maxY then
+        if layer.y <= layer.topY or layer.y >= layer.bottomY then
             snapLayer()
         elseif touch.isMaybySwiping then
             -- 根据一定时间范围内手指的滑动速度计算惯性
@@ -165,15 +165,15 @@ function new(args)
     function setSumHeight()
         -- 计算列表的总高度，并依次排列所有条目
         sumHeight = 0
-        for i = 1, #view.items do
-            local item = view.items[i]
+        for i, item in ipairs(view.items) do
             item.y = -sumHeight
             sumHeight = sumHeight + item.itemHeight
         end
 
         -- 计算条目层的 y 值有效范围
-        layer.minY = 0
-        layer.maxY = sumHeight - validTouchHeight + 1
+        layer.topY = 0
+        layer.bottomY = sumHeight - validTouchHeight + 1
+        if layer.bottomY < 0 then layer.bottomY = 0 end
     end
 
     local function init()
@@ -207,9 +207,9 @@ function new(args)
     end
 
     function view:removeItem(itemIndex)
-        for i = 1, #view.items do
+        for i, item in ipairs(view.items) do
             if i == itemIndex then
-                view.items[i]:removeSelf()
+                item:removeSelf()
                 table.remove(view.items, i)
 
                 for j = i, #view.items do
@@ -241,12 +241,12 @@ function new(args)
 
         local top    = 0
         local bottom = 0
-        for i = 1, #view.items do
+        for i, item in ipairs(view.items) do
             if i == itemIndex then
-                bottom = top - view.items[i].itemHeight
+                bottom = top - item.itemHeight
                 break
             else
-                top = top - view.items[i].itemHeight
+                top = top - item.itemHeight
             end
         end
 
@@ -270,10 +270,16 @@ function new(args)
 
     function view:enable()
         view.isEnabled = true
+        for i, item in ipairs(view.items) do
+            item:enable()
+        end
     end
 
     function view:disable()
         view.isEnabled = false
+        for i, item in ipairs(view.items) do
+            item:disable()
+        end
     end
 
     function view:newItem(params)
@@ -281,10 +287,19 @@ function new(args)
         if type(params.height) ~= "number" then params.height = 40 end
 
         local item = display.newGroup()
-        qeeplay.api.EventProtocol.extend(item)
+        EventProtocol.extend(item)
         item.scrollView = view
         item.itemHeight = params.height
         item.itemIndex  = 0
+        item.isEnabled = false
+
+        function item:enable()
+            item.isEnabled = true
+        end
+
+        function item:disable()
+            item.isEnabled = false
+        end
 
         return item
     end
@@ -294,3 +309,5 @@ function new(args)
     init()
     return view
 end
+
+return M

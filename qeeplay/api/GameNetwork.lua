@@ -1,7 +1,5 @@
 
---[[
-
-## Overview
+--[[--
 
 Game Network allows access to 3rd party libraries that enables social gaming features
 such as public leaderboards and achievements.
@@ -14,25 +12,29 @@ in the project folder.
 
 See http://support.openfeint.com/dev/game-center-compatibility/ for details.
 
+@module qeeplay.api.GameNetwork
+
 ]]
-module(..., package.seeall)
+local M = {}
 
 local instance
 
---[[ Initializes an app with the parameters (e.g., product key, secret, display name, etc.)
+--[[--
+
+Initializes an app with the parameters (e.g., product key, secret, display name, etc.)
 required by the game network provider.
 
 **Syntax:**
 
     -- OpenFeint
-    gameNetwork.init("openfeint", {
+    qeeplay.api.GameNetwork.init("openfeint", {
         productKey  = ...,
         secret      = ...,
         displayName = ...,
     })
 
     -- GameCenter
-    gameNetwork.init("gamecenter", {
+    qeeplay.api.GameNetwork.init("gamecenter", {
         listener = ...
     })
 
@@ -47,10 +49,10 @@ required by the game network provider.
 
     --
     local achievements = qeeplay.api.GameNetwork.request("getAchievements")
-    dump(achievements, "All achievements")
+    ccdump(achievements, "All achievements")
 
     local leaderboards = qeeplay.api.GameNetwork.request("getLeaderboards")
-    dump(leaderboards, "All leaderboards")
+    ccdump(leaderboards, "All leaderboards")
 
     local score = math.random(100, 200)
     local displayText = string.format("My score is %d", score)
@@ -61,44 +63,40 @@ required by the game network provider.
 
     qeeplay.api.GameNetwork.show("dashboard")
 
-**Parameters:**
-
--   providerName:
-
-    String of the game network provider. ("openfeint" or "gamecenter", case insensitive)
-
--   params:
-
-    Additional parameters required by the "openfeint" provider.
-
-    -   productKey: String of your application's OpenFeint product key (provided by OpenFeint).
-    -   secret: String of your application's product secret (provided by OpenFeint).
-    -   displayName: String of the name to display in OpenFeint leaderboards and other views.
-
-    If using GameCenter, the params.listener allows you to specify a callback function.
-    (Instead of secret keys, your bundle identifier is used automatically to identify your app.)
-    On successful login, event.data will be 'true'. On unsuccessful init, event.data will be false.
-    When problems such as network errors occur, event.errorCode (integer) and event.errorString
-    (string) will be defined.
-
-    Also be aware that iOS backgrounding will cause your app to automatically log out your user
-    from Game Center. When the app is resumed, Game Center will automatically try to re-login
-    your user. The callback function you specified here will be invoked again telling you the
-    result of that re-login attempt. Thus, this callback function exists for the life of your
-    application. With Game Center, it is advisable to avoid calling other Game Center functions
-    when the user is not logged in.
-
-**Returns:**
-
-Nothing.
-
 **Note:**
 
 GameNetwork only supports one provider at a time (you cannot call this API multiple times for
 different providers).
 
+<br />
+
+@param providerName
+String of the game network provider. ("openfeint" or "gamecenter", case insensitive)
+
+@param params
+Additional parameters required by the "openfeint" provider.
+
+-   **productKey**: String of your application's OpenFeint product key (provided by OpenFeint).
+-   **secret**: String of your application's product secret (provided by OpenFeint).
+-   **displayName**: String of the name to display in OpenFeint leaderboards and other views.
+
+If using GameCenter, the params.listener allows you to specify a callback function.
+(Instead of secret keys, your bundle identifier is used automatically to identify your app.)
+On successful login, event.data will be 'true'. On unsuccessful init, event.data will be false.
+When problems such as network errors occur, event.errorCode (integer) and event.errorString
+(string) will be defined.
+
+Also be aware that iOS backgrounding will cause your app to automatically log out your user
+from Game Center. When the app is resumed, Game Center will automatically try to re-login
+your user. The callback function you specified here will be invoked again telling you the
+result of that re-login attempt. Thus, this callback function exists for the life of your
+application. With Game Center, it is advisable to avoid calling other Game Center functions
+when the user is not logged in.
+
+@return Nothing.
+
 ]]
-function init(providerName, params)
+function M.init(providerName, params)
     if instance then
         return instance:isReady()
     end
@@ -110,12 +108,12 @@ function init(providerName, params)
     elseif providerName == "OPENFEINT" then
         provider = require("qeeplay.api.gamenetwork.OpenFeint")
     else
-        log.error("[qeeplay.api.GameNetwork] ERR, init() invalid providerName: %s", providerName)
+        ccerror("[qeeplay.api.GameNetwork] ERR, init() invalid providerName: %s", providerName)
         return false
     end
 
     if type(params) ~= "table" then
-        log.error("[qeeplay.api.GameNetwork] ERR, init() invalid params")
+        ccerror("[qeeplay.api.GameNetwork] ERR, init() invalid params")
         return false
     end
 
@@ -123,7 +121,8 @@ function init(providerName, params)
     instance:init(params)
 end
 
---[[ Send or request information to/from the game network provider.
+--[[--
+Send or request information to/from the game network provider.
 
 **Syntax:**
 
@@ -138,21 +137,6 @@ end
     -- unlockAchievement, achievement id
     GameNetwork.request("unlockAchievement", "1242345322")
 
-**Parameters:**
-
--   command:
-
-    Command string supported by the provider (case insensitive).
-
--   params ...:
-
-    Parmeters used in the commands.
-
-**Returns:**
-
-Nothing.
-
-----
 
 **OpenFeint**
 
@@ -195,17 +179,28 @@ Command supported by the OpenFeint provider:
 
 Coming soon.
 
+<br />
+
+@param command
+Command string supported by the provider (case insensitive).
+
+@param ...
+Parmeters used in the commands.
+
+@return Nothing.
+
 ]]
-function request(name, ...)
+function M.request(command, ...)
     if not instance then return end
     local params = {}
     for i = 1, select("#", ...) do
         params[i] = select(i, ...)
     end
-    return instance:request(name, params)
+    return instance:request(command, params)
 end
 
---[[ Shows (displays) information from game network provider on the screen.
+--[[--
+Shows (displays) information from game network provider on the screen.
 
 For OpenFeint provider, launches the OpenFeint dashboard in one of the following configurations: leaderboards, challenges, achievements, friends, playing or high score.
 
@@ -217,23 +212,7 @@ For OpenFeint provider, launches the OpenFeint dashboard in one of the following
 
     qeeplay.api.GameNetwork("leaderboards")
 
-**Parameters:**
-
--   command:
-
-    Strings supported by provider.
-
--   params ...:
-
-    Parameters used by command.
-
-**Returns:**
-
-Nothing.
-
-----
-
-**OpenFeint**
+**OpenFeint:**
 
 Command supported by the OpenFeint provider:
 
@@ -266,16 +245,28 @@ Command supported by the OpenFeint provider:
         qeeplay.api.GameNetwork.show("dashboard")
 
 
-**GameCenter**
+**GameCenter:**
 
 Coming soon.
 
+<br />
+
+@param command
+Strings supported by provider.
+
+@param ...
+Parameters used by command.
+
+@return Nothing.
+
 ]]
-function show(name, ...)
+function M.show(command, ...)
     if not instance then return end
     local params = {}
     for i = 1, select("#", ...) do
         params[i] = select(i, ...)
     end
-    instance:show(name, params)
+    instance:show(command, params)
 end
+
+return M

@@ -1,24 +1,23 @@
 
-module("network", package.seeall)
+local M = {}
 
-
-function isLocalWiFiAvailable()
+function M.isLocalWiFiAvailable()
     return CCNetwork:isLocalWiFiAvailable()
 end
 
-function isInternetConnectionAvailable()
+function M.isInternetConnectionAvailable()
     return CCNetwork:isInternetConnectionAvailable()
 end
 
-function isHostNameReachable(hostname)
+function M.isHostNameReachable(hostname)
     if type(hostname) ~= "string" then
-        log.error("[native] ERR, isHostNameReachable() invalid hostname")
+        ccerror("[network] ERR, isHostNameReachable() invalid hostname")
         return false
     end
     return CCNetwork:isHostNameReachable(hostname)
 end
 
-function getInternetConnectionStatus()
+function M.getInternetConnectionStatus()
     return CCNetwork:getInternetConnectionStatus()
 end
 
@@ -103,3 +102,5 @@ end
 --     })
 --     thread:start()
 -- end
+
+return M

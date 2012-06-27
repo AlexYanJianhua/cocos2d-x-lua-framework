@@ -1,123 +1,124 @@
 
-module("audio", package.seeall)
+local M = {}
 
-engine = SimpleAudioEngine:sharedEngine()
+local scheduler = require("qeeplay.basic.scheduler")
 
+local engine    = SimpleAudioEngine:sharedEngine()
 local isEnabled = true
 
-function disable()
+function M.disable()
     isEnabled = false
 end
 
-function enable()
+function M.enable()
     isEnabled = true
 end
 
-function preloadMusic(filename)
+function M.preloadMusic(filename)
     if not isEnabled then return end
     engine:preloadBackgroundMusic(filename)
 end
 
-function playMusic(filename, isLoop)
+function M.playMusic(filename, isLoop)
     if not isEnabled then return end
     if type(isLoop) ~= "boolean" then isLoop = true end
     engine:playBackgroundMusic(filename, isLoop)
 end
 
-function stopMusic(isReleaseData)
+function M.stopMusic(isReleaseData)
     if not isEnabled then return end
     if type(isReleaseData) ~= "boolean" then isReleaseData = false end
     engine:stopBackgroundMusic(isReleaseData)
 end
 
-function pauseMusic()
+function M.pauseMusic()
     if not isEnabled then return end
     engine:pauseBackgroundMusic()
 end
 
-function resumeMusic()
+function M.resumeMusic()
     if not isEnabled then return end
     engine:resumeBackgroundMusic()
 end
 
-function rewindMusic()
+function M.rewindMusic()
     if not isEnabled then return end
     ending:rewindBackgroundMusic()
 end
 
-function willPlayMusic()
+function M.willPlayMusic()
     if not isEnabled then return false end
     return engine:willPlayBackgroundMusic()
 end
 
-function isMusicPlaying()
+function M.isMusicPlaying()
     if not isEnabled then return false end
     return engine:isBackgroundMusicPlaying()
 end
 
-function getMusicVolume()
+function M.getMusicVolume()
     if not isEnabled then return 0 end
     return engine:getBackgroundMusicVolume()
 end
 
-function setMusicVolume(volume)
+function M.setMusicVolume(volume)
     if not isEnabled then return end
     engine:setBackgroundMusicVolume(volume)
 end
 
-function getEffectsVolume()
+function M.getEffectsVolume()
     if not isEnabled then return 0 end
     return engine:getEffectsVolume()
 end
 
-function setEffectsVolume(volume)
+function M.setEffectsVolume(volume)
     if not isEnabled then return end
     engine:setEffectsVolume(volume)
 end
 
-function switchMusicOnOff()
+function M.switchMusicOnOff()
     if not isEnabled then return end
-    if getMusicVolume() <= 0.01 then
-        setMusicVolume(1)
+    if M.getMusicVolume() <= 0.01 then
+        M.setMusicVolume(1)
     else
-        setMusicVolume(0)
+        M.setMusicVolume(0)
     end
 end
 
-function switchSoundsOnOff()
+function M.switchSoundsOnOff()
     if not isEnabled then return end
-    if getEffectsVolume() <= 0.01 then
-        setEffectsVolume(1)
+    if M.getEffectsVolume() <= 0.01 then
+        M.setEffectsVolume(1)
     else
-        setEffectsVolume(0)
+        M.setEffectsVolume(0)
     end
 end
 
-function playEffect(filename, isLoop)
+function M.playEffect(filename, isLoop)
     if not isEnabled then return end
     if type(isLoop) ~= "boolean" then isLoop = false end
     return engine:playEffect(filename, isLoop)
 end
 
-function stopEffect(handle)
+function M.stopEffect(handle)
     if not isEnabled then return end
     engine:stopEffect(handle)
 end
 
-function preloadEffect(filename)
+function M.preloadEffect(filename)
     if not isEnabled then return end
     engine:preloadEffect(filename)
 end
 
-function unloadEffect(filename)
+function M.unloadEffect(filename)
     if not isEnabled then return end
     engine:unloadEffect(filename)
 end
 
 local handleFadeMusicVolumeTo = nil
-function fadeMusicVolumeTo(time, volume)
+function M.fadeMusicVolumeTo(time, volume)
     if not isEnabled then return end
-    local currentVolume = getMusicVolume()
+    local currentVolume = M.getMusicVolume()
     if volume == currentVolume then return end
 
     if handleFadeMusicVolumeTo then
@@ -132,21 +133,23 @@ function fadeMusicVolumeTo(time, volume)
             currentVolume = volume
             scheduler.remove(handleFadeMusicVolumeTo)
         end
-        setMusicVolume(currentVolume)
+        M.setMusicVolume(currentVolume)
     end
 
     handleFadeMusicVolumeTo = scheduler.enterFrame(changeVolumeStep, false)
 end
 
 local handleFadeToMusic = nil
-function fadeToMusic(music, time, volume, isLoop)
+function M.fadeToMusic(music, time, volume, isLoop)
     if not isEnabled then return end
     if handleFadeToMusic then scheduler.remove(handleFadeToMusic) end
     time = time / 2
     if type(volume) ~= "number" then volume = 1.0 end
-    fadeMusicVolumeTo(volume, 0)
+    M.fadeMusicVolumeTo(volume, 0)
     handleFadeToMusic = scheduler.performWithDelay(time + 0.1, function()
-        playMusic(music, isLoop)
-        fadeMusicVolumeTo(time, volume)
+        M.playMusic(music, isLoop)
+        M.fadeMusicVolumeTo(time, volume)
     end)
 end
+
+return M

@@ -1,103 +1,65 @@
 
-module("device", package.seeall)
+local M = {}
 
-local director = CCDirector:sharedDirector()
+M.host     = "ios"
+M.model    = "iphone"
+M.platform = "ios"
 
-----
-
-host = "ios"
-model = "iphone"
-platform = "ios"
-
--- landscape, landscape_right
--- landscape_left
--- portrait
--- upside_down
-orientationPortrait = "portrait"
-orientationUpsideDown = "upside_down"
-orientationLandscapeLeft = "landscape_left"
-orientationLandscapeRight = "landscape_right"
-
-if DEVICE_ORIENTATION then
-    orientation = string.lower(DEVICE_ORIENTATION)
-    if orientation == "landscape"
-       or orientation == "landscape_right"
-       or orientation == "landscaperight" then
-        orientation = orientationLandscapeRight
-    elseif orientation == "landscape_left" or orientation == "landscapeleft" then
-        orientation = orientationLandscapeLeft
-    elseif orientation == "upside_down" or orientation == "upsidedown" then
-        orientation = orientationUpsideDown
-    else
-        orientation = orientationPortrait
-    end
+local language_ = CCApplication:getCurrentLanguage()
+if language_ == kLanguageChinese then
+    language_ = "cn"
+elseif language_ == kLanguageFrench then
+    language_ = "fr"
+elseif language_ == kLanguageItalian then
+    language_ = "it"
+elseif language_ == kLanguageGerman then
+    language_ = "gr"
+elseif language_ == kLanguageSpanish then
+    language_ = "sp"
+elseif language_ == kLanguageRussian then
+    language_ = "ru"
 else
-    orientation = director:getDeviceOrientation()
-    if orientation == kCCDeviceOrientationLandscapeLeft then
-        orientation = orientationLandscapeLeft
-    elseif orientation == kCCDeviceOrientationLandscapeRight then
-        orientation = orientationLandscapeRight
-    elseif orientation == kCCDeviceOrientationPortraitUpsideDown then
-        orientation = orientationUpsideDown
-    else
-        orientation = orientationPortrait
-    end
+    language_ = "en"
 end
 
+M.language = language_
+M.writeablePath = CCFileUtils:getWriteablePath()
 
-----
-local winSizeInPixels = director:getWinSizeInPixels()
-screenWidth = winSizeInPixels.width
-screenHeight = winSizeInPixels.height
-isRetinaDisplay = director:isRetinaDisplay()
-scaleFactor = director:getContentScaleFactor()
+ccwarning("# device.host                  = "..M.host)
+ccwarning("# device.model                 = "..M.model)
+ccwarning("# device.platform              = "..M.platform)
+ccwarning("# device.language              = "..M.language)
+ccwarning("#")
 
-screenType = "iphone"
-if isRetinaDisplay then
-    screenType = "iphonehd"
-else
-    if orientation == orientationLandscapeLeft or orientation == orientationLandscapeRight then
-        if screenWidth == 1024 then
-            screenType = "ipad"
-        end
-    else
-        if screenWidth == 769 then
-            screenType = "ipad"
-        end
+function M.showActivityIndicator(style)
+    if type(style) ~= "number" then
+        style = CCActivityIndicatorViewStyleWhiteLarge
     end
+    CCNative:showActivityIndicator(style)
 end
 
-----
-
-local _language = CCApplication:getCurrentLanguage()
-if _language == kLanguageChinese then
-    language = "cn"
-elseif _language == kLanguageFrench then
-    language = "fr"
-elseif _language == kLanguageItalian then
-    language = "it"
-elseif _language == kLanguageGerman then
-    language = "gr"
-elseif _language == kLanguageSpanish then
-    language = "sp"
-elseif _language == kLanguageRussian then
-    language = "ru"
-else
-    language = "en"
+function M.hideActivityIndicator()
+    CCNative:hideActivityIndicator()
 end
 
-writeablePath = CCFileUtils:getWriteablePath()
+function M.showAlert(title, message, cancelButtonTitle, listener, ...)
+    CCNative:createAlert(title, message, cancelButtonTitle)
+    for i = 1, select("#", ...) do
+        local buttonTitle = select(i, ...)
+        CCNative:addAlertButton(buttonTitle)
+    end
+    if type(listener) ~= "function" then
+        listener = function() end
+    end
+    CCNative:showAlertLua(listener)
+end
 
-----
+function M.cancelAlert()
+    CCNative:cancelAlert()
+end
 
-log.warning("# device.host                  = "..host)
-log.warning("# device.model                 = "..model)
-log.warning("# device.platform              = "..platform)
-log.warning("# device.isRetinaDisplay       = "..tostring(isRetinaDisplay))
-log.warning("# device.screenType            = "..screenType)
-log.warning("# device.screenWidth           = "..screenWidth)
-log.warning("# device.screenHeight          = "..screenHeight)
-log.warning("# device.scaleFactor           = "..scaleFactor)
-log.warning("# device.orientation           = "..orientation)
-log.warning("# device.language              = "..language)
-log.warning("#")
+function M.getOpenUDID()
+    return CCNative:getOpenUDID()
+end
+
+return M

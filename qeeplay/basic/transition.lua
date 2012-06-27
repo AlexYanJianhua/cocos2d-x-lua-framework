@@ -1,39 +1,38 @@
 
-module("transition", package.seeall)
+local M = {}
 
-local easingMap = {}
-easingMap["CCEASEBACKIN"]           = {CCEaseBackIn, 1}
-easingMap["CCEASEBACKINOUT"]        = {CCEaseBackInOut, 1}
-easingMap["CCEASEBACKOUT"]          = {CCEaseBackOut, 1}
-easingMap["CCEASEBOUNCE"]           = {CCEaseBounce, 1}
-easingMap["CCEASEBOUNCEIN"]         = {CCEaseBounceIn, 1}
-easingMap["CCEASEBOUNCEINOUT"]      = {CCEaseBounceInOut, 1}
-easingMap["CCEASEBOUNCEOUT"]        = {CCEaseBounceOut, 1}
-easingMap["CCEASEELASTIC"]          = {CCEaseElastic, 2, 0.3}
-easingMap["CCEASEELASTICIN"]        = {CCEaseElasticIn, 2, 0.3}
-easingMap["CCEASEELASTICINOUT"]     = {CCEaseElasticInOut, 2, 0.3}
-easingMap["CCEASEELASTICOUT"]       = {CCEaseElasticOut, 2, 0.3}
-easingMap["CCEASEEXPONENTIALIN"]    = {CCEaseExponentialIn, 1}
-easingMap["CCEASEEXPONENTIALINOUT"] = {CCEaseExponentialInOut, 1}
-easingMap["CCEASEEXPONENTIALOUT"]   = {CCEaseExponentialOut, 1}
-easingMap["CCEASEIN"]               = {CCEaseIn, 2, 1}
-easingMap["CCEASEINOUT"]            = {CCEaseInOut, 2, 1}
-easingMap["CCEASEOUT"]              = {CCEaseOut, 2, 1}
-easingMap["CCEASERATEACTION"]       = {CCEaseRateAction, 2, 1}
-easingMap["CCEASESINEIN"]           = {CCEaseSineIn, 1}
-easingMap["CCEASESINEINOUT"]        = {CCEaseSineInOut, 1}
-easingMap["CCEASESINEOUT"]          = {CCEaseSineOut, 1}
+local ACTION_EASING = {}
+ACTION_EASING["BACKIN"]           = {CCEaseBackIn, 1}
+ACTION_EASING["BACKINOUT"]        = {CCEaseBackInOut, 1}
+ACTION_EASING["BACKOUT"]          = {CCEaseBackOut, 1}
+ACTION_EASING["BOUNCE"]           = {CCEaseBounce, 1}
+ACTION_EASING["BOUNCEIN"]         = {CCEaseBounceIn, 1}
+ACTION_EASING["BOUNCEINOUT"]      = {CCEaseBounceInOut, 1}
+ACTION_EASING["BOUNCEOUT"]        = {CCEaseBounceOut, 1}
+ACTION_EASING["ELASTIC"]          = {CCEaseElastic, 2, 0.3}
+ACTION_EASING["ELASTICIN"]        = {CCEaseElasticIn, 2, 0.3}
+ACTION_EASING["ELASTICINOUT"]     = {CCEaseElasticInOut, 2, 0.3}
+ACTION_EASING["ELASTICOUT"]       = {CCEaseElasticOut, 2, 0.3}
+ACTION_EASING["EXPONENTIALIN"]    = {CCEaseExponentialIn, 1}
+ACTION_EASING["EXPONENTIALINOUT"] = {CCEaseExponentialInOut, 1}
+ACTION_EASING["EXPONENTIALOUT"]   = {CCEaseExponentialOut, 1}
+ACTION_EASING["IN"]               = {CCEaseIn, 2, 1}
+ACTION_EASING["INOUT"]            = {CCEaseInOut, 2, 1}
+ACTION_EASING["OUT"]              = {CCEaseOut, 2, 1}
+ACTION_EASING["RATEACTION"]       = {CCEaseRateAction, 2, 1}
+ACTION_EASING["SINEIN"]           = {CCEaseSineIn, 1}
+ACTION_EASING["SINEINOUT"]        = {CCEaseSineInOut, 1}
+ACTION_EASING["SINEOUT"]          = {CCEaseSineOut, 1}
 
 local actionManager = CCActionManager:sharedManager()
 
-
-function newEasing(action, easingName, more)
+function M.newEasing(action, easingName, more)
     local key = string.upper(tostring(easingName))
-    if string.sub(key, 1, 6) ~= "CCEASE" then
-        key = "CCEASE" .. key
+    if string.sub(key, 1, 6) == "CCEASE" then
+        key = string.sub(key, 7)
     end
-    if easingMap[key] then
-        local cls, count, default = unpack(easingMap[key])
+    if ACTION_EASING[key] then
+        local cls, count, default = unpack(ACTION_EASING[key])
         if count == 2 then
             easing = cls:actionWithAction(action, more or default)
         else
@@ -43,22 +42,25 @@ function newEasing(action, easingName, more)
     return easing
 end
 
-function to(target, action, args)
-    local delay = args.delay or 0
-    local time = args.time or 0.2
-    local onComplete = args.onComplete or onComplete
+function M.execute(target, action, args)
+    local delay = tonumber(args.delay)
+    if type(delay) ~= "number" then delay = 0 end
+
+    local time = tonumber(args.time)
+    if type(time) ~= "number" then time = 0.2 end
+
+    local onComplete = args.onComplete
+    if type(onComplete) ~= "function" then onComplete = nil end
 
     if args.easing then
         if type(args.easing) == "table" then
-            action = newEasing(action, unpack(args.easing))
+            action = M.newEasing(action, unpack(args.easing))
         else
-            action = newEasing(action, args.easing)
+            action = M.newEasing(action, args.easing)
         end
     end
 
-    if type(time) ~= "number" then time = 0.2 end
-
-    if type(delay) == "number" and delay > 0 then
+    if delay > 0 then
         action:retain()
         scheduler.performWithDelay(delay, function()
             target:runAction(action)
@@ -68,60 +70,72 @@ function to(target, action, args)
         target:runAction(action)
     end
 
-    if type(onComplete) == "function" then
+    if onComplete then
         scheduler.performWithDelay(delay + time, onComplete)
     end
 
     return action
 end
 
-function moveTo(target, args)
+function M.moveTo(target, args)
     local x = args.x or target.x
     local y = args.y or target.y
-    local action = CCMoveTo:actionWithDuration(args.time or 0.2, ccp(x, y))
-    return to(target, action, args)
+    local action = CCMoveTo:actionWithDuration(args.time, ccp(x, y))
+    return M.execute(target, action, args)
 end
 
-function moveBy(target, args)
+function M.moveBy(target, args)
     local x = args.x or target.x
     local y = args.y or target.y
-    local action = CCMoveBy:actionWithDuration(args.time or 0.2, ccp(x, y))
-    return to(target, action, args)
+    local action = CCMoveBy:actionWithDuration(args.time, ccp(x, y))
+    return M.execute(target, action, args)
 end
 
-function fadeIn(target, args)
-    local action = CCFadeIn:actionWithDuration(args.time or 0.2)
+function M.fadeIn(target, args)
+    local action = CCFadeIn:actionWithDuration(args.time)
     target.opacity = 0
-    return to(target, action, args)
+    return M.execute(target, action, args)
 end
 
-function fadeOut(target, args)
-    local action = CCFadeOut:actionWithDuration(args.time or 0.2)
+function M.fadeOut(target, args)
+    local action = CCFadeOut:actionWithDuration(args.time)
     target.opacity = 255
-    return to(target, action, args)
+    return M.execute(target, action, args)
 end
 
-function fadeTo(target, args)
-    local action = CCFadeTo:actionWithDuration(args.time or 0.2, args.opacity or 0)
-    return to(target, action, args)
+function M.fadeTo(target, args)
+    local opacity = tonumber(args.opacity)
+    if type(opacity) ~= "number" then opacity = 255 end
+    local action = CCFadeTo:actionWithDuration(args.time, opacity)
+    return M.execute(target, action, args)
 end
 
-function cancel(target)
+function M.scaleTo(target, args)
+    local scale = tonumber(args.scale)
+    if type(scale) ~= "number" then scale = 1.0 end
+    local action = CCScaleTo:actionWithDuration(args.time, scale)
+    return M.execute(target, action, args)
+end
+
+function M.cancel(target)
     actionManager:removeAllActionsFromTarget(target)
 end
+M.remove = M.cancel
 
-function pause(target)
+function M.pause(target)
     actionManager:pauseTarget(target)
 end
 
-function resume(target)
+function M.resume(target)
     actionManager:resumeTarget(target)
 end
 
-function newSequence(actions)
+function M.sequence(actions)
     local arr = CCArray:array()
     for i = 1, #actions do
         arr:addObject(actions[i])
     end
     return CCSequence:actionsWithArrayLua(arr)
 end
+
+return M

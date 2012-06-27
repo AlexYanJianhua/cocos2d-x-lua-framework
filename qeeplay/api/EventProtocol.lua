@@ -1,73 +1,146 @@
 
-module(..., package.seeall)
+--[[--
 
---[[ 给指定的对象添加事件处理机制
+Events are the principal way in which you create interactive applications. They are a way of
+triggering responses in your program. For example, you can turn any display object into an
+interactive object.
+
+@module qeeplay.api.EventProtocol
+
 ]]
-function extend(target)
-    target.listeners = {}   -- 所有的事件处理函数
+local M = {}
 
-    --[[ 注册一个事件
-    用法：
-        -- BOAT_DEAD 事件的处理函数
-        local function onBoatDead(event)
-            print(event.name, event.boat)
-        end
+--[[--
 
-        -- 注册 BOAT_DEAD 事件
-        target:addEventListener("BOAT_DEAD", onBoatDead)
+Turn any object into an interactive object.
 
-        -- 触发 BOAT_DEAD 事件
-        local event = {name = "BOAT_DEAD", boat = boat}
-        target:dispatchEvent(event)
-    ]]
-    function target:addEventListener(name, listener)
-        name = string.upper(name)
-        if target.listeners[name] == nil then target.listeners[name] = {} end
-        local t = target.listeners[name]
+**Syntax:**
+
+    qeeplay.api.EventProtocol.extend(object)
+
+]]
+function M.extend(object)
+    object.listeners = {}
+    -- setmetatable(object.listeners, {__mode = "v"})
+
+    --[[--
+
+Adds a listener to the object’s list of listeners. When the named event occurs, the listener will be invoked and be supplied with a table representing the event.
+
+**Syntax:**
+
+    object:addEventListener(eventName, listener)
+
+**Example:**
+
+    -- Create an object that listens to events
+    local player = Player.new()
+    qeeplay.api.EventProtocol.extend(player)
+
+    -- Setup listener
+    local function onPlayerDead(event)
+        -- event.name   == "PLAYER_DEAD"
+        -- event.object == player
+    end
+    player:addEventListener("PLAYER_DEAD", onPlayerDead)
+
+    -- Sometime later, create an event and dispatch it
+    player:dispatchEvent({name = "PLAYER_DEAD"})
+
+<br />
+
+@param eventName
+String specifying the name of the event to listen for.
+
+@tparam function listener
+If the event's event.name matches this string, listener will be invoked.
+
+@return Nothing.
+
+]]
+    function object:addEventListener(eventName, listener)
+        eventName = string.upper(eventName)
+        if object.listeners[eventName] == nil then object.listeners[eventName] = {} end
+        local t = object.listeners[eventName]
         t[#t + 1] = listener
     end
 
-    --[[ 触发一个事件
-    event 参数必须是一个对象，其 name 属性指定事件名称，其他属性则事件附带的参数。
-    事件处理函数如果返回 false，则表示阻止该事件继续传播给同一事件的其他处理函数。
-    ]]
-    function target:dispatchEvent(event)
+    --[[--
+
+Dispatches event to object. The event parameter must be a table with a name property which is a
+string identifying the type of event. Event include a object property to the event so that your listener can know which object
+received the event.
+
+**Syntax:**
+
+    object:dispatchEvent(event)
+
+<br />
+
+@param event
+contains event properties
+
+]]
+    function object:dispatchEvent(event)
         event.name = string.upper(event.name)
-        local name = event.name
-        if target.listeners[name] == nil then return end
-        local t = target.listeners[name]
+        event.target = object
+        local eventName = event.name
+        if object.listeners[eventName] == nil then return end
+        local t = object.listeners[eventName]
         for i = #t, 1, -1 do
             local listener = t[i]
             if listener(event) == false then break end
         end
     end
 
-    --[[ 删除指定事件的一个处理函数
-    用法：
-        target:removeEventListener("BOAT_DEAD", onBoatDead)
+    --[[--
+
+Removes the specified listener from the object's list of listeners so that it no longer is
+notified of events corresponding to the specified event.
+
+**Syntax:**
+
+    object:removeEventListener(eventName, listener)
+
     ]]
-    function target:removeEventListener(name, listener)
-        name = string.upper(name)
-        if target.listeners[name] == nil then return end
-        local t = target.listeners[name]
+    function object:removeEventListener(eventName, listener)
+        eventName = string.upper(eventName)
+        if object.listeners[eventName] == nil then return end
+        local t = object.listeners[eventName]
         for i = #t, 1, -1 do
             if t[i] == listener then
                 table.remove(t, i)
                 return
             end
         end
-        if #t == 0 then target.listeners[name] = nil end
+        if #t == 0 then object.listeners[eventName] = nil end
     end
 
-    --[[ 删除指定事件的所有处理函数
-    ]]
-    function target:removeAllEventListenersForEvent(name)
-        target.listeners[string.upper(name)] = nil
+    --[[--
+
+Removes all listeners for specified event from the object's list of listeners.
+
+**Syntax:**
+
+    object:removeAllEventListenersForEvent(eventName)
+
+]]
+    function object:removeAllEventListenersForEvent(eventName)
+        object.listeners[string.upper(eventName)] = nil
     end
 
-    --[[ 删除所有事件处理函数
-    ]]
-    function target:removeAllEventListeners()
-        target.listeners = {}
+    --[[--
+
+Removes all listeners from the object's list of listeners.
+
+**Syntax:**
+
+    object:removeAllEventListeners()
+
+]]
+    function object:removeAllEventListeners()
+        object.listeners = {}
     end
 end
+
+return M

@@ -1,24 +1,37 @@
 
-require("qeeplay.support.debug")
+math.randomseed(os.time())
+math.random()
+math.random()
+math.random()
+math.random()
 
-log.warning("")
-log.warning("# debug                        = "..DEBUG)
-log.warning("#")
+if type(DEBUG) ~= "number" then DEBUG = 1 end
+io.output():setvbuf('no')
 
-require("qeeplay.support.device")
-require("qeeplay.support.functions")
-require("qeeplay.support.director")
-require("qeeplay.support.display")
-require("qeeplay.support.scheduler")
-require("qeeplay.support.transition")
-require("qeeplay.support.native")
-require("qeeplay.support.network")
-require("qeeplay.support.ui")
-require("qeeplay.support.audio")
-require("qeeplay.support.crypto")
-require("qeeplay.support.json")
--- require("qeeplay.support.localize")
+local prt = function(...)
+    ccprintf("[LUA] "..string.format(...))
+end
 
+ccnotice  = function() end
+ccwarning = function() end
+ccerror   = prt
+
+if DEBUG > 0 then ccwarning = prt end
+if DEBUG > 1 then ccnotice = prt end
+
+require("qeeplay.basic.debug")
+require("qeeplay.basic.functions")
+
+ccwarning("")
+ccwarning("# DEBUG                        = "..DEBUG)
+ccwarning("#")
+
+-- define global module
+device     = require("qeeplay.basic.device")
+display    = require("qeeplay.basic.display")
+scheduler  = require("qeeplay.basic.scheduler")
+transition = require("qeeplay.basic.transition")
+audio      = require("qeeplay.basic.audio")
 
 local timeCount = 0
 local function checkMemory(dt)

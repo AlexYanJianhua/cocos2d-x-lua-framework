@@ -1,18 +1,20 @@
 
-module("ui", package.seeall)
+local M = {}
 
-TOUCH_BEGAN     = CCTOUCHBEGAN
-TOUCH_MOVED     = CCTOUCHMOVED
-TOUCH_ENDED     = CCTOUCHENDED
-TOUCH_CANCELLED = CCTOUCHCANCELLED
+local display = require("qeeplay.basic.display")
 
-DEFAULT_TTF_FONT      = "Arial"
-DEFAULT_TTF_FONT_SIZE = 16
+M.TOUCH_BEGAN     = CCTOUCHBEGAN
+M.TOUCH_MOVED     = CCTOUCHMOVED
+M.TOUCH_ENDED     = CCTOUCHENDED
+M.TOUCH_CANCELLED = CCTOUCHCANCELLED
 
-function newMenu(...)
+M.DEFAULT_TTF_FONT      = "Arial"
+M.DEFAULT_TTF_FONT_SIZE = 16
+
+function M.newMenu(...)
     local menu
     menu = CCMenu:node()
-    display._setNodeMethods(menu)
+    display.extendNode(menu)
 
     local item = select(1, ...)
     local items = {}
@@ -33,7 +35,7 @@ function newMenu(...)
     return menu
 end
 
-function newMenuItemImage(params)
+function M.newMenuItemImage(params)
     local imageNormal   = params.image
     local imageDown     = params.imageDown
     local imageDisabled = params.imageDisabled
@@ -54,17 +56,17 @@ function newMenuItemImage(params)
 
     local item = CCMenuItemSprite:itemFromNormalSprite(imageNormal, imageDown, imageDisabled)
     if item then
-        display._setSpriteMethods(item)
+        display.extendSprite(item)
         if type(listener) == "function" then item:registerScriptTapHandler(listener) end
         if x and y then item:setPosition(x, y) end
     end
     return item
 end
 
-function newBMFontLabel(text, font, x, y, align)
+function M.newBMFontLabel(text, font, x, y, align)
     text = tostring(text)
     local label = CCLabelBMFont:labelWithString(text, font)
-    if label then display._setNodeMethods(label) end
+    if label then display.extendNode(label) end
     if type(x) == "number" and type(y) == "number" then
         if align then
             label:align(align, x, y)
@@ -75,7 +77,7 @@ function newBMFontLabel(text, font, x, y, align)
     return label
 end
 
-function newTTFLabel(params)
+function M.newTTFLabel(params)
     ccassert(type(params) == "table",
              "[framework.support.ui] newTTFLabel() invalid params")
 
@@ -91,14 +93,14 @@ function newTTFLabel(params)
 
     local label = CCLabelTTF:labelWithString(text, tostring(font), size)
     if label then
-        display._setNodeMethods(label)
+        display.extendNode(label)
         label:setColor(color)
         if x and y then label:setPosition(x, y) end
     end
     return label
 end
 
-function newTTFLabelWithShadow(params)
+function M.newTTFLabelWithShadow(params)
     ccassert(type(params) == "table",
              "[framework.support.ui] newTTFLabelWithShadow() invalid params")
 
@@ -114,7 +116,7 @@ function newTTFLabelWithShadow(params)
              "[framework.support.ui] newTTFLabelWithShadow() invalid params.size")
 
     local g = display.newGroup()
-    local shadow = newTTFLabel({
+    local shadow = M.newTTFLabel({
         text = text,
         font = font,
         size = size,
@@ -124,7 +126,7 @@ function newTTFLabelWithShadow(params)
     g:addChild(shadow)
     g.shadow = shadow
 
-    local label = newTTFLabel({
+    local label = M.newTTFLabel({
         text = text,
         font = font,
         size = size,
@@ -151,3 +153,5 @@ function newTTFLabelWithShadow(params)
     if x and y then g:align(align, x, y) end
     return g
 end
+
+return M

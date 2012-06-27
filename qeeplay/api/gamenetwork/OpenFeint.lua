@@ -1,7 +1,14 @@
 
-module(..., package.seeall)
+--[[--
 
-function new()
+OpenFeint is a 3rd party library that enables social gaming features such as public leaderboards and achievements. For more information, see http://www.openfeint.com/ and http://www.openfeint.com/developers.
+
+@module qeeplay.api.gamenetwork.OpenFeint
+
+]]
+local M = {}
+
+function M.new()
     local openfeint = {}
 
     ----
@@ -21,7 +28,7 @@ function new()
         elseif name == "UNLOCKACHIEVEMENT" then
             local achievementId = tostring(params[1])
             if type(achievementId) ~= "string" then
-                log.error("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
+                ccerror("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
                           "unlockAchievement", "invalid achievementId")
             end
 
@@ -33,21 +40,21 @@ function new()
         elseif name == "SETHIGHSCORE" then
             local leaderboardId = params[1]
             if type(leaderboardId) ~= "string" then
-                log.error("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
+                ccerror("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
                           "setHighScore", "invalid leaderboardId")
                 return false
             end
 
             local score = tonumber(params[2])
             if type(score) ~= "number" then
-                log.error("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
+                ccerror("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
                           "setHighScore", "invalid score")
                 return false
             end
 
             local displayText = params[3]
             if type(displayText) ~= "string" then
-                log.error("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
+                ccerror("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
                           "setHighScore", "invalid displayText")
                 return false
             end
@@ -66,7 +73,7 @@ function new()
         elseif name == "LEADERBOARD" then
             local leaderboardId = params[1]
             if type(leaderboardId) ~= "string" then
-                log.error("[qeeplay.api.GameNetwork.OpenFeint] ERR, show(%s) %s",
+                ccerror("[qeeplay.api.GameNetwork.OpenFeint] ERR, show(%s) %s",
                           "leaderboards", "invalid leaderboardId")
             else
                 CCOpenFeint:showLeaderboards(leaderboardId)
@@ -93,3 +100,5 @@ function new()
 
     return openfeint
 end
+
+return M

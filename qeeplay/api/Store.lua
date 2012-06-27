@@ -1,54 +1,78 @@
 
-module(..., package.seeall)
+--[[--
+
+This feature allows you to support In-App Purchases. Currently, only the Apple iTunes Store is supported. In the future, other store fronts may be added.
+
+@module qeeplay.api.Store
+
+]]
+local M = {}
 
 local store
 
---[[
+--[[--
 
-function transactionCallback(event)
-    local transaction = event.transaction
-    if transaction.state == "purchased" then
-        print("Transaction succuessful!")
-        print("productId", transaction.productId)
-        print("quantity", transaction.quantity)
-        print("transactionIdentifier", transaction.transactionIdentifier)
-        print("date", os.date("%Y-%m-%d %H:%M:%S", transaction.date))
-        print("receipt", transaction.receipt)
-    elseif  transaction.state == "restored" then
-        print("Transaction restored (from previous session)")
-        print("productId", transaction.productId)
-        print("receipt", transaction.receipt)
-        print("transactionIdentifier", transaction.identifier)
-        print("date", transaction.date)
-        print("originalReceipt", transaction.originalReceipt)
-        print("originalTransactionIdentifier", transaction.originalIdentifier)
-        print("originalDate", transaction.originalDate)
-    elseif transaction.state == "failed" then
-        print("Transaction failed")
-        print("errorCode", transaction.errorCode)
-        print("errorString", transaction.errorString)
-    else
-        print("unknown event")
+Activates In-App Purchases.
+
+Starts up the In-App Purchase engine and allows you to receive callbacks with the listener function you specify.
+
+**Syntax:**
+
+    qeeplay.api.Store.init(listener)
+
+**Example:**
+
+    function transactionCallback(event)
+        local transaction = event.transaction
+        if transaction.state == "purchased" then
+            print("Transaction succuessful!")
+            print("productId", transaction.productId)
+            print("quantity", transaction.quantity)
+            print("transactionIdentifier", transaction.transactionIdentifier)
+            print("date", os.date("%Y-%m-%d %H:%M:%S", transaction.date))
+            print("receipt", transaction.receipt)
+        elseif  transaction.state == "restored" then
+            print("Transaction restored (from previous session)")
+            print("productId", transaction.productId)
+            print("receipt", transaction.receipt)
+            print("transactionIdentifier", transaction.identifier)
+            print("date", transaction.date)
+            print("originalReceipt", transaction.originalReceipt)
+            print("originalTransactionIdentifier", transaction.originalIdentifier)
+            print("originalDate", transaction.originalDate)
+        elseif transaction.state == "failed" then
+            print("Transaction failed")
+            print("errorCode", transaction.errorCode)
+            print("errorString", transaction.errorString)
+        else
+            print("unknown event")
+        end
+
+        -- Once we are done with a transaction, call this to tell the store
+        -- we are done with the transaction.
+        -- If you are providing downloadable content, wait to call this until
+        -- after the download completes.
+        qeeplay.api.Store.finishTransaction(transaction)
     end
 
-    -- Once we are done with a transaction, call this to tell the store
-    -- we are done with the transaction.
-    -- If you are providing downloadable content, wait to call this until
-    -- after the download completes.
-    qeeplay.api.Store.finishTransaction(transaction)
-end
+    qeeplay.api.Store.init(transactionCallback)
 
-qeeplay.api.Store.init(transactionCallback)
+<br />
+
+@tparam function listener
+This is the listener that will handle transaction callback events.
+
+@return Nothing.
 
 ]]
-function init(listener)
+function M.init(listener)
     if store then
-        log.error("[qeeplay.api.Store] ERR, init() store already init")
+        ccerror("[qeeplay.api.Store] ERR, init() store already init")
         return false
     end
 
     if type(listener) ~= "function" then
-        log.error("[qeeplay.api.Store] ERR, init() invalid listener")
+        ccerror("[qeeplay.api.Store] ERR, init() invalid listener")
         return false
     end
 
@@ -56,18 +80,24 @@ function init(listener)
     return store:postInitWithTransactionListenerLua(listener)
 end
 
-function getReceiptVerifyMode()
+--[[--
+
+]]
+function M.getReceiptVerifyMode()
     if not store then
-        log.error("[qeeplay.api.Store] ERR, getReceiptVerifyMode() store not init")
+        ccerror("[qeeplay.api.Store] ERR, getReceiptVerifyMode() store not init")
         return false
     end
 
     return store:getReceiptVerifyMode()
 end
 
-function setReceiptVerifyMode(mode, isSandbox)
+--[[--
+
+]]
+function M.setReceiptVerifyMode(mode, isSandbox)
     if not store then
-        log.error("[qeeplay.api.Store] ERR, setReceiptVerifyMode() store not init")
+        ccerror("[qeeplay.api.Store] ERR, setReceiptVerifyMode() store not init")
         return false
     end
 
@@ -75,7 +105,7 @@ function setReceiptVerifyMode(mode, isSandbox)
         or (mode ~= CCStoreReceiptVerifyModeNone
             and mode ~= CCStoreReceiptVerifyModeDevice
             and mode ~= CCStoreReceiptVerifyModeServer) then
-        log.error("[qeeplay.api.Store] ERR, setReceiptVerifyMode() invalid mode")
+        ccerror("[qeeplay.api.Store] ERR, setReceiptVerifyMode() invalid mode")
         return false
     end
 
@@ -83,83 +113,135 @@ function setReceiptVerifyMode(mode, isSandbox)
     store:setReceiptVerifyMode(mode, isSandbox)
 end
 
-function getReceiptVerifyServerUrl()
+--[[--
+
+]]
+function M.getReceiptVerifyServerUrl()
     if not store then
-        log.error("[qeeplay.api.Store] ERR, getReceiptVerifyServerUrl() store not init")
+        ccerror("[qeeplay.api.Store] ERR, getReceiptVerifyServerUrl() store not init")
         return false
     end
 
     return store:getReceiptVerifyServerUrl()
 end
 
-function setReceiptVerifyServerUrl(url)
+--[[--
+
+]]
+function M.setReceiptVerifyServerUrl(url)
     if not store then
-        log.error("[qeeplay.api.Store] ERR, setReceiptVerifyServerUrl() store not init")
+        ccerror("[qeeplay.api.Store] ERR, setReceiptVerifyServerUrl() store not init")
         return false
     end
 
     if type(url) ~= "string" then
-        log.error("[qeeplay.api.Store] ERR, setReceiptVerifyServerUrl() invalid url")
+        ccerror("[qeeplay.api.Store] ERR, setReceiptVerifyServerUrl() invalid url")
         return false
     end
 
     store:setReceiptVerifyServerUrl(url)
 end
 
-function canMakePurchases()
+--[[--
+
+Returns true if purchases are allowed, false otherwise.
+
+**Syntax:**
+
+    value = qeeplay.api.Store.canMakePurchases
+
+**Example:**
+
+    if qeeplay.api.Store.canMakePurchases() then
+        qeeplay.api.Store.purchase(productId)
+    else
+        print("Store purchases are not available")
+    end
+
+**Note:**
+
+iOS devices have a setting that disables purchasing. A common case for this is to prevent children from accidentally purchasing things without parents' permission. Corona provides an API to check whether purchasing is possible. Use this preemptively to avoid having your users navigate through many purchase steps only to find out at the last step that purchasing is forbidden.
+
+<br />
+
+@return Returns true if purchases are allowed, false otherwise.
+
+]]
+function M.canMakePurchases()
     if not store then
-        log.error("[qeeplay.api.Store] ERR, canMakePurchases() store not init")
+        ccerror("[qeeplay.api.Store] ERR, canMakePurchases() store not init")
         return false
     end
 
     return store:canMakePurchases()
 end
 
---[[
-function productCallback(event)
-    print("showing valid products", #event.products)
-    for i=1, #event.products do
-        print(event.products[i].title)              -- string.
-        print(event.products[i].description)        -- string.
-        print(event.products[i].price)              -- number.
-        print(event.products[i].localizedPrice)     -- string.
-        print(event.products[i].productIdentifier)  -- string.
+--[[--
+
+Retrieves information about items available for sale.
+This includes the price of each item, a localized name, and a localized description.
+
+**Syntax:**
+
+    qeeplay.api.Store.loadProducts(arrayOfProductIdentifiers, listener)
+
+**Example:**
+
+    function productCallback(event)
+        print("showing valid products", #event.products)
+        for i=1, #event.products do
+            print(event.products[i].title)              -- string.
+            print(event.products[i].description)        -- string.
+            print(event.products[i].price)              -- number.
+            print(event.products[i].localizedPrice)     -- string.
+            print(event.products[i].productIdentifier)  -- string.
+        end
+
+        print("showing invalidProducts", #event.invalidProducts)
+        for i=1, #event.invalidProducts do
+            print(event.invalidProducts[i])
+        end
     end
 
-    print("showing invalidProducts", #event.invalidProducts)
-    for i=1, #event.invalidProducts do
-        print(event.invalidProducts[i])
-    end
-end
+    local productsId = {
+        "com.anscamobile.NewExampleInAppPurchase.ConsumableTier1",
+        "com.anscamobile.NewExampleInAppPurchase.NonConsumableTier1",
+        "com.anscamobile.NewExampleInAppPurchase.SubscriptionTier1",
+        -- "bad.product.id",
+    }
 
-local productsId = {
-    "com.anscamobile.NewExampleInAppPurchase.ConsumableTier1",
-    "com.anscamobile.NewExampleInAppPurchase.NonConsumableTier1",
-    "com.anscamobile.NewExampleInAppPurchase.SubscriptionTier1",
-    -- "bad.product.id",
-}
+    qeeplay.api.Store.loadProducts(productsId, productCallback)
 
-qeeplay.api.Store.loadProducts(productsId, productCallback)
+<br />
+
+@tparam table productsId
+A Lua array with each element containing a string which is the product identifier of the in-app item you want to know about.
+
+@tparam function listener
+A callback function that is invoked when the store finishes retrieving the product information.
+
+@return Nothing.
+
 ]]
-function loadProducts(productsId, listener)
+function M.loadProducts(productsId, listener)
     if not store then
-        log.error("[qeeplay.api.Store] ERR, loadProducts() store not init")
+        ccerror("[qeeplay.api.Store] ERR, loadProducts() store not init")
         return false
     end
 
     if type(listener) ~= "function" then
-        log.error("[qeeplay.api.Store] ERR, loadProducts() invalid listener")
+        ccerror("[qeeplay.api.Store] ERR, loadProducts() invalid listener")
         return false
     end
 
     if type(productsId) ~= "table" then
-        log.error("[qeeplay.api.Store] ERR, loadProducts() invalid productsId")
+        ccerror("[qeeplay.api.Store] ERR, loadProducts() invalid productsId")
         return false
     end
 
     for i = 1, #productsId do
         if type(productsId[i]) ~= "string" then
-            log.error("[qeeplay.api.Store] ERR, loadProducts() invalid id[#%d] in productsId", i)
+            ccerror("[qeeplay.api.Store] ERR, loadProducts() invalid id[#%d] in productsId", i)
             return false
         end
     end
@@ -168,51 +250,94 @@ function loadProducts(productsId, listener)
     return true
 end
 
-function cancelLoadProducts()
+--[[--
+
+]]
+function M.cancelLoadProducts()
     if not store then
-        log.error("[qeeplay.api.Store] ERR, cancelLoadProducts() store not init")
+        ccerror("[qeeplay.api.Store] ERR, cancelLoadProducts() store not init")
         return false
     end
 
     store:cancelLoadProducts()
 end
 
-function isProductLoaded(productId)
+--[[--
+
+]]
+function M.isProductLoaded(productId)
     if not store then
-        log.error("[qeeplay.api.Store] ERR, isProductLoaded() store not init")
+        ccerror("[qeeplay.api.Store] ERR, isProductLoaded() store not init")
         return false
     end
 
     return store:isProductLoaded(productId)
 end
 
---[[
-qeeplay.api.Store.purchase("com.anscamobile.NewExampleInAppPurchase.ConsumableTier1")
+--[[--
+
+Initiates a purchase transaction on a provided list of products.
+
+This function will send out purchase requests to the store. The listener you specified in qeeplay.api.Store.init() will be invoked when the store finishes processing the transaction.
+
+**Syntax:**
+
+    qeeplay.api.Store.purchase(productId)
+
+**Example:**
+
+    qeeplay.api.Store.purchase("com.qeeplay.example.ConsumableTier1")
+
+<br />
+
+@param productId
+A string which is the product identifier string.
+
+@return Nothing.
+
 ]]
-function purchase(productId)
+function M.purchase(productId)
     if not store then
-        log.error("[qeeplay.api.Store] ERR, purchase() store not init")
+        ccerror("[qeeplay.api.Store] ERR, purchase() store not init")
         return false
     end
 
     if type(productId) ~= "string" then
-        log.error("[qeeplay.api.Store] ERR, purchase() invalid productId")
+        ccerror("[qeeplay.api.Store] ERR, purchase() invalid productId")
         return false
     end
 
     return store:purchase(productId)
 end
 
-function finishTransaction(transaction)
+--[[--
+
+Notifies the App Store that a transaction is complete.
+
+After you finish handling a transaction, you must call qeeplay.api.Store.finishTransaction() on the transaction object. If you don't do this, the App Store will think your transaction was interrupted and will attempt to resume it on the next application launch.
+
+**Syntax:**
+
+    qeeplay.api.Store.finishTransaction(transaction)
+
+@tparam table transaction
+The transaction object belonging to the transaction you want to mark as finished.
+
+@return Nothing.
+
+]]
+function M.finishTransaction(transaction)
     if not store then
-        log.error("[qeeplay.api.Store] ERR, finishTransaction() store not init")
+        ccerror("[qeeplay.api.Store] ERR, finishTransaction() store not init")
         return false
     end
 
     if type(transaction) ~= "table" or type(transaction.transactionIdentifier) ~= "string" then
-        log.error("[qeeplay.api.Store] ERR, finishTransaction() invalid transaction")
+        ccerror("[qeeplay.api.Store] ERR, finishTransaction() invalid transaction")
         return false
     end
 
     return store:finishTransactionLua(transaction.transactionIdentifier)
 end
+
+return M
