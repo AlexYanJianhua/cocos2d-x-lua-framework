@@ -141,6 +141,8 @@ Removes all listeners from the object's list of listeners.
     function object:removeAllEventListeners()
         object.listeners = {}
     end
+
+    return object
 end
 
 return M
