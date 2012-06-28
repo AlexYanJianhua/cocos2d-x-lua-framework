@@ -8,10 +8,30 @@ function ccprintf(fmt, ...)
     CCLuaLog(output)
 end
 
+function ccvardump(...)
+    local count = select("#", ...)
+    if count < 1 then return end
+
+    ccprintf("ccvardump:")
+    for i = 1, count do
+        local v = select(i, ...)
+        local t = type(v)
+        if t == "string" then
+            ccprintf("  %02d: [string] %s", i, v)
+        elseif t == "boolean" then
+            ccprintf("  %02d: [boolean] %s", i, tostring(v))
+        elseif t == "number" then
+            ccprintf("  %02d: [number] %0.2f", i, v)
+        else
+            ccprintf("  %02d: [%s] %s", i, t, tostring(v))
+        end
+    end
+end
+
 function ccassert(expr, message, ...)
     if expr then return expr end
     local output = string.format(message, select(1, ...))
-    error(output, 2)
+    error(output)
 end
 
 -- prints human-readable information about a variable
@@ -32,8 +52,13 @@ function ccdump(object, label, nesting, nest)
             else
                 ccprintf(string.format("%s%s = {", indent, tostring(label)))
                 local indent2 = indent.."    "
+                local keys = {}
                 for k, v in pairs(object) do
-                    _ccdump(v, k, indent2, nest + 1)
+                    keys[#keys + 1] = k
+                end
+                table.sort(keys)
+                for i, k in ipairs(keys) do
+                    _ccdump(object[k], k, indent2, nest + 1)
                 end
                 ccprintf(string.format("%s}", indent))
             end
