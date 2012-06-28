@@ -5,6 +5,8 @@ math.random()
 math.random()
 math.random()
 
+__QEEPLAY_GLOBALS__ = {}
+
 if type(DEBUG) ~= "number" then DEBUG = 1 end
 io.output():setvbuf('no')
 

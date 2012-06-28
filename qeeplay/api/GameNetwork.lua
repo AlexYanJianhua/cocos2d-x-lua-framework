@@ -15,9 +15,10 @@ See http://support.openfeint.com/dev/game-center-compatibility/ for details.
 @module qeeplay.api.GameNetwork
 
 ]]
+
 local M = {}
 
-local instance
+local provider = __QEEPLAY_GLOBALS__["api.GameNetwork"]
 
 --[[--
 
@@ -97,12 +98,17 @@ when the user is not logged in.
 
 ]]
 function M.init(providerName, params)
-    if instance then
-        return instance:isReady()
+    if provider then
+        ccerror("[qeeplay.api.GameNetwork] ERR, init() GameNetwork already init")
+        return false
+    end
+
+    if type(params) ~= "table" then
+        ccerror("[qeeplay.api.GameNetwork] ERR, init() invalid params")
+        return false
     end
 
     providerName = string.upper(providerName)
-    local provider
     if providerName == "GAMECENTER" then
         provider = require("qeeplay.api.gamenetwork.GameCenter")
     elseif providerName == "OPENFEINT" then
@@ -112,17 +118,12 @@ function M.init(providerName, params)
         return false
     end
 
-    if type(params) ~= "table" then
-        ccerror("[qeeplay.api.GameNetwork] ERR, init() invalid params")
-        return false
-    end
-
-    instance = provider.new()
-    instance:init(params)
+    provider.init(params)
+    __QEEPLAY_GLOBALS__["api.GameNetwork"] = provider
 end
 
 --[[--
-Send or request information to/from the game network provider.
+Send or request information to/from the game network provider:
 
 **Syntax:**
 
@@ -191,12 +192,16 @@ Parmeters used in the commands.
 
 ]]
 function M.request(command, ...)
-    if not instance then return end
+    if not provider then
+        ccerror("[qeeplay.api.GameNetwork] ERR, request() GameNetwork not init")
+        return
+    end
+
     local params = {}
     for i = 1, select("#", ...) do
         params[i] = select(i, ...)
     end
-    return instance:request(command, params)
+    return provider.request(command, params)
 end
 
 --[[--
@@ -214,7 +219,7 @@ For OpenFeint provider, launches the OpenFeint dashboard in one of the following
 
 **OpenFeint:**
 
-Command supported by the OpenFeint provider:
+Command supported by the OpenFeint provider.
 
 -   leaderboard: leaderboard id
 
@@ -261,12 +266,16 @@ Parameters used by command.
 
 ]]
 function M.show(command, ...)
-    if not instance then return end
+    if not provider then
+        ccerror("[qeeplay.api.GameNetwork] ERR, request() GameNetwork not init")
+        return
+    end
+
     local params = {}
     for i = 1, select("#", ...) do
         params[i] = select(i, ...)
     end
-    instance:show(command, params)
+    provider.show(command, params)
 end
 
 return M

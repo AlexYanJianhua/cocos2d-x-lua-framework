@@ -8,7 +8,7 @@ This feature allows you to support In-App Purchases. Currently, only the Apple i
 ]]
 local M = {}
 
-local store
+local store = __QEEPLAY_GLOBALS__["api.Store"]
 
 --[[--
 
