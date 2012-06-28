@@ -5,6 +5,8 @@ local scheduler = require("qeeplay.basic.scheduler")
 
 local engine    = SimpleAudioEngine:sharedEngine()
 local isEnabled = true
+local isMusicOn = true
+local isSoundsOn = true
 
 function M.disable()
     isEnabled = false
@@ -66,58 +68,69 @@ function M.setMusicVolume(volume)
     engine:setBackgroundMusicVolume(volume)
 end
 
-function M.getEffectsVolume()
+function M.getSoundsVolume()
     if not isEnabled then return 0 end
     return engine:getEffectsVolume()
 end
+M.getEffectsVolume = M.getSoundsVolume
 
-function M.setEffectsVolume(volume)
+function M.setSoundsVolume(volume)
     if not isEnabled then return end
     engine:setEffectsVolume(volume)
 end
+M.setEffectsVolume = M.setSoundsVolume
 
 function M.switchMusicOnOff()
     if not isEnabled then return end
     if M.getMusicVolume() <= 0.01 then
         M.setMusicVolume(1)
+        isMusicOn = true
     else
         M.setMusicVolume(0)
+        isMusicOn = false
     end
 end
 
 function M.switchSoundsOnOff()
     if not isEnabled then return end
-    if M.getEffectsVolume() <= 0.01 then
-        M.setEffectsVolume(1)
+    if M.getSoundsVolume() <= 0.01 then
+        M.setSoundsVolume(1)
+        isSoundsOn = true
     else
-        M.setEffectsVolume(0)
+        M.setSoundsVolume(0)
+        isSoundsOn = false
     end
 end
+M.switchEffectsOnOff = M.switchSoundsOnOff
 
-function M.playEffect(filename, isLoop)
+function M.playSound(filename, isLoop)
     if not isEnabled then return end
     if type(isLoop) ~= "boolean" then isLoop = false end
     return engine:playEffect(filename, isLoop)
 end
+M.playEffect = M.playSound
 
-function M.stopEffect(handle)
+function M.stopSound(handle)
     if not isEnabled then return end
     engine:stopEffect(handle)
 end
+M.stopEffect = M.stopSound
 
-function M.preloadEffect(filename)
+function M.preloadSound(filename)
     if not isEnabled then return end
     engine:preloadEffect(filename)
 end
+M.preloadEffect = M.preloadSound
 
-function M.unloadEffect(filename)
+function M.unloadSound(filename)
     if not isEnabled then return end
     engine:unloadEffect(filename)
 end
+M.unloadEffect = M.unloadSound
 
 local handleFadeMusicVolumeTo = nil
 function M.fadeMusicVolumeTo(time, volume)
-    if not isEnabled then return end
+    if not isEnabled or not isMusicOn then return end
     local currentVolume = M.getMusicVolume()
     if volume == currentVolume then return end
 
