@@ -34,6 +34,7 @@ display    = require("qeeplay.basic.display")
 scheduler  = require("qeeplay.basic.scheduler")
 transition = require("qeeplay.basic.transition")
 audio      = require("qeeplay.basic.audio")
+ui         = require("qeeplay.basic.ui")
 
 local timeCount = 0
 local function checkMemory(dt)

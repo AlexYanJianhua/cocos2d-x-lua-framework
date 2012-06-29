@@ -79,7 +79,7 @@ end
 
 function M.newTTFLabel(params)
     ccassert(type(params) == "table",
-             "[framework.support.ui] newTTFLabel() invalid params")
+             "[qeeplay.basic.ui] newTTFLabel() invalid params")
 
     local text = tostring(params.text)
     local font = params.font or DEFAULT_TTF_FONT
@@ -89,7 +89,7 @@ function M.newTTFLabel(params)
     local x, y = params.x, params.y
 
     ccassert(type(size) == "number",
-             "[framework.support.ui] newTTFLabel() invalid params.size")
+             "[qeeplay.basic.ui] newTTFLabel() invalid params.size")
 
     local label = CCLabelTTF:labelWithString(text, tostring(font), size)
     if label then
@@ -102,7 +102,7 @@ end
 
 function M.newTTFLabelWithShadow(params)
     ccassert(type(params) == "table",
-             "[framework.support.ui] newTTFLabelWithShadow() invalid params")
+             "[qeeplay.basic.ui] newTTFLabelWithShadow() invalid params")
 
     local text = tostring(params.text)
     local font = params.font or DEFAULT_TTF_FONT
@@ -113,7 +113,7 @@ function M.newTTFLabelWithShadow(params)
     local x, y = params.x, params.y
 
     ccassert(type(size) == "number",
-             "[framework.support.ui] newTTFLabelWithShadow() invalid params.size")
+             "[qeeplay.basic.ui] newTTFLabelWithShadow() invalid params.size")
 
     local g = display.newGroup()
     local shadow = M.newTTFLabel({
