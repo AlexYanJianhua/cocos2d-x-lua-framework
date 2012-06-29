@@ -66,6 +66,7 @@ end
 function M.setMusicVolume(volume)
     if not isEnabled then return end
     engine:setBackgroundMusicVolume(volume)
+    isMusicOn = volume > 0
 end
 
 function M.getSoundsVolume()
@@ -77,6 +78,7 @@ M.getEffectsVolume = M.getSoundsVolume
 function M.setSoundsVolume(volume)
     if not isEnabled then return end
     engine:setEffectsVolume(volume)
+    isSoundsOn = volume > 0
 end
 M.setEffectsVolume = M.setSoundsVolume
 
