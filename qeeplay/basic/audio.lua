@@ -160,7 +160,7 @@ function M.fadeToMusic(music, time, volume, isLoop)
     if handleFadeToMusic then scheduler.remove(handleFadeToMusic) end
     time = time / 2
     if type(volume) ~= "number" then volume = 1.0 end
-    M.fadeMusicVolumeTo(volume, 0)
+    M.fadeMusicVolumeTo(volume, 0.01)
     handleFadeToMusic = scheduler.performWithDelay(time + 0.1, function()
         M.playMusic(music, isLoop)
         M.fadeMusicVolumeTo(time, volume)
