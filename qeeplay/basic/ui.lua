@@ -82,8 +82,8 @@ function M.newTTFLabel(params)
              "[qeeplay.basic.ui] newTTFLabel() invalid params")
 
     local text = tostring(params.text)
-    local font = params.font or DEFAULT_TTF_FONT
-    local size = params.size or DEFAULT_TTF_FONT_SIZE
+    local font = params.font or M.DEFAULT_TTF_FONT
+    local size = params.size or M.DEFAULT_TTF_FONT_SIZE
     local color = params.color or display.COLOR_WHITE
     local align = params.align or display.LEFT_CENTER
     local x, y = params.x, params.y
@@ -105,8 +105,8 @@ function M.newTTFLabelWithShadow(params)
              "[qeeplay.basic.ui] newTTFLabelWithShadow() invalid params")
 
     local text = tostring(params.text)
-    local font = params.font or DEFAULT_TTF_FONT
-    local size = params.size or DEFAULT_TTF_FONT_SIZE
+    local font = params.font or M.DEFAULT_TTF_FONT
+    local size = params.size or M.DEFAULT_TTF_FONT_SIZE
     local color = params.color or display.COLOR_WHITE
     local shadowColor = params.shadowColor or display.COLOR_BLACK
     local align = params.align or display.LEFT_CENTER
