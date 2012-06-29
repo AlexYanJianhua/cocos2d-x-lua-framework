@@ -42,7 +42,31 @@ class LuaPackager
         printf("create C source file: %s\n", $sourceFilename);
         file_put_contents($sourceFilename, $this->renderSourceFile($outputFileBasename));
 
-        printf("done.\n");
+        printf("done.\n\n");
+
+        $outputFileBasename = basename($outputFileBasename);
+
+        print <<<EOT
+
+
+### HOW TO USE ###
+
+1. Add code to AppDelegate.cpp:
+
+    extern "C" {
+    #include "${outputFileBasename}.h"
+    }
+
+2. Add code to AppDelegate::applicationDidFinishLaunching()
+
+    CCScriptEngineProtocol* pEngine = CCScriptEngineManager::sharedManager()->getScriptEngine();
+    luaopen_${outputFileBasename}(pEngine->getLuaState());
+
+    pEngine->executeString("require(\"main\")");
+
+
+EOT;
+
     }
 
     private function compile()
@@ -123,6 +147,7 @@ class LuaPackager
     private function renderHeaderFile($outputFileBasename)
     {
         $headerSign = '__LUA_MODULES_' . strtoupper(md5(time())) . '_H_';
+        $outputFileBasename = basename($outputFileBasename);
 
         $contents = array();
         $contents[] = <<<EOT
@@ -134,25 +159,19 @@ class LuaPackager
 
 #include "lua.h"
 
-/*
-static luaL_Reg luax_exts[] = {
+void luaopen_${outputFileBasename}(lua_State* L);
 
 EOT;
 
-        foreach ($this->modules as $module)
-        {
-            $contents[] = sprintf('    {"%s", %s},',
-                                  $module["moduleName"],
-                                  $module["functionName"]);
-        }
-
-        $contents[] = "    {NULL, NULL}\n};\n";
+        $contents[] = '/*';
 
         foreach ($this->modules as $module)
         {
-            $contents[] = sprintf('/* %s, %s.lua */', $module['moduleName'], $module['basename']);
-            $contents[] = sprintf('%s(lua_State* L);', $module['functionName']);
+            // $contents[] = sprintf('/* %s, %s.lua */', $module['moduleName'], $module['basename']);
+            $contents[] = sprintf('int %s(lua_State* L);', $module['functionName']);
         }
+
+        $contents[] = '*/';
 
         $contents[] = <<<EOT
 
@@ -165,6 +184,8 @@ EOT;
 
     private function renderSourceFile($outputFileBasename)
     {
+        $outputFileBasename = basename($outputFileBasename);
+
         $contents = array();
         $contents[] = <<<EOT
 
@@ -210,6 +231,34 @@ EOT;
         }
 
         $contents[] = '';
+
+        $contents[] = "static luaL_Reg ${outputFileBasename}_modules[] = {";
+
+        foreach ($this->modules as $module)
+        {
+            $contents[] = sprintf('    {"%s", %s},',
+                                  $module["moduleName"],
+                                  $module["functionName"]);
+        }
+
+        $contents[] = <<<EOT
+    {NULL, NULL}
+};
+
+void luaopen_${outputFileBasename}(lua_State* L)
+{
+    luaL_Reg* lib = ${outputFileBasename}_modules;
+    for (; lib->func; lib++)
+    {
+        lua_getglobal(L, "package");
+        lua_getfield(L, -1, "preload");
+        lua_pushcfunction(L, lib->func);
+        lua_setfield(L, -2, lib->name);
+        lua_pop(L, 2);
+    }
+}
+
+EOT;
 
         return implode("\n", $contents);
     }
