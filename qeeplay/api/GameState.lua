@@ -1,7 +1,8 @@
 
 local M = {}
 
-local json = require("qeeplay.ext.json")
+local json   = require("qeeplay.ext.json")
+local crypto = require("qeeplay.ext.crypto")
 
 M.ERROR_INVALID_FILE_CONTENTS = -1
 M.ERROR_HASH_MISS_MATCH       = -2
