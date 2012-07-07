@@ -77,6 +77,7 @@ function M.init(listener)
     end
 
     store = CCStore:sharedStore()
+    __QEEPLAY_GLOBALS__["api.Store"] = store    -- avoid gc
     return store:postInitWithTransactionListenerLua(listener)
 end
 

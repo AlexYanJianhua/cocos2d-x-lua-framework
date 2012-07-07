@@ -62,4 +62,8 @@ function M.getOpenUDID()
     return CCNative:getOpenUDID()
 end
 
+function M.openURL(url)
+    CCNative:openURL(url)
+end
+
 return M

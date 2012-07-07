@@ -11,6 +11,10 @@ M.TOUCH_CANCELLED = CCTOUCHCANCELLED
 M.DEFAULT_TTF_FONT      = "Arial"
 M.DEFAULT_TTF_FONT_SIZE = 16
 
+M.TEXT_ALIGN_LEFT   = CCTextAlignmentLeft
+M.TEXT_ALIGN_CENTER = CCTextAlignmentCenter
+M.TEXT_ALIGN_RIGHT  = CCTextAlignmentRight
+
 function M.newMenu(...)
     local menu
     menu = CCMenu:node()
@@ -63,13 +67,15 @@ function M.newMenuItemImage(params)
     return item
 end
 
-function M.newBMFontLabel(text, font, x, y, align)
+function M.newBMFontLabel(text, font, x, y, textAlign)
     text = tostring(text)
     local label = CCLabelBMFont:labelWithString(text, font)
-    if label then display.extendNode(label) end
+    if not label then return end
+
+    display.extendNode(label)
     if type(x) == "number" and type(y) == "number" then
-        if align then
-            label:align(align, x, y)
+        if textAlign then
+            label:textAlign(textAlign, x, y)
         else
             label:setPosition(x, y)
         end
@@ -81,21 +87,38 @@ function M.newTTFLabel(params)
     ccassert(type(params) == "table",
              "[qeeplay.basic.ui] newTTFLabel() invalid params")
 
-    local text = tostring(params.text)
-    local font = params.font or M.DEFAULT_TTF_FONT
-    local size = params.size or M.DEFAULT_TTF_FONT_SIZE
-    local color = params.color or display.COLOR_WHITE
-    local align = params.align or display.LEFT_CENTER
-    local x, y = params.x, params.y
+    local text       = tostring(params.text)
+    local font       = params.font or M.DEFAULT_TTF_FONT
+    local size       = params.size or M.DEFAULT_TTF_FONT_SIZE
+    local color      = params.color or display.COLOR_WHITE
+    local textAlign  = params.align or M.TEXT_ALIGN_LEFT
+    local x, y       = params.x, params.y
+    local dimensions = params.dimensions
 
     ccassert(type(size) == "number",
              "[qeeplay.basic.ui] newTTFLabel() invalid params.size")
 
-    local label = CCLabelTTF:labelWithString(text, tostring(font), size)
+    local label
+    if dimensions then
+        label = CCLabelTTF:labelWithString(text, dimensions, textAlign, font, size)
+    else
+        label = CCLabelTTF:labelWithString(text, font, size)
+    end
     if label then
         display.extendNode(label)
         label:setColor(color)
-        if x and y then label:setPosition(x, y) end
+
+        function label:realign(x, y)
+            if textAlign == M.TEXT_ALIGN_LEFT then
+                label:setPosition(x + label.contentSize.width / 2, y)
+            elseif textAlign == M.TEXT_ALIGN_RIGHT then
+                label:setPosition(x - label.contentSize.width / 2, y)
+            else
+                label:setPosition(x, y)
+            end
+        end
+
+        if x and y then label:realign(x, y) end
     end
     return label
 end
@@ -104,53 +127,30 @@ function M.newTTFLabelWithShadow(params)
     ccassert(type(params) == "table",
              "[qeeplay.basic.ui] newTTFLabelWithShadow() invalid params")
 
-    local text = tostring(params.text)
-    local font = params.font or M.DEFAULT_TTF_FONT
-    local size = params.size or M.DEFAULT_TTF_FONT_SIZE
-    local color = params.color or display.COLOR_WHITE
+    local color       = params.color or display.COLOR_WHITE
     local shadowColor = params.shadowColor or display.COLOR_BLACK
-    local align = params.align or display.LEFT_CENTER
-    local x, y = params.x, params.y
-
-    ccassert(type(size) == "number",
-             "[qeeplay.basic.ui] newTTFLabelWithShadow() invalid params.size")
+    local x, y        = params.x, params.y
 
     local g = display.newGroup()
-    local shadow = M.newTTFLabel({
-        text = text,
-        font = font,
-        size = size,
-        color = shadowColor
-    })
-    shadow:align(align, 0.5, -0.5)
-    g:addChild(shadow)
-    g.shadow = shadow
+    params.color = shadowColor
+    params.x, params.y = nil, nil
+    g.shadow = M.newTTFLabel(params)
+    g.shadow:realign(0.5, -0.5)
+    g:addChild(g.shadow)
 
-    local label = M.newTTFLabel({
-        text = text,
-        font = font,
-        size = size,
-        color = color
-    })
-    label:align(align, 0, 0)
-    g:addChild(label)
-    g.label = label
+    params.color = color
+    g.label = M.newTTFLabel(params)
+    g.label:realign(0, 0)
+    g:addChild(g.label)
 
     function g:setString(text)
         g.shadow:setString(text)
         g.label:setString(text)
     end
 
-    g.align_ = g.align
-    function g:align(align, x, y)
-        g.shadow:align(align, 0.5, -0.5)
-        g.label:align(align, 0, 0)
-        g:setPosition(x, y)
-    end
-
     g.contentSize = g.label.contentSize
 
-    if x and y then g:align(align, x, y) end
+    if x and y then g:setPosition(x, y) end
     return g
 end
 

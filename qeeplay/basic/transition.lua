@@ -71,7 +71,10 @@ function M.execute(target, action, args)
     end
 
     if onComplete then
-        scheduler.performWithDelay(delay + time, onComplete)
+        action.onCompleteHandle = scheduler.performWithDelay(delay + time, function()
+            action.onCompleteHandle = nil
+            onComplete()
+        end)
     end
 
     return action
@@ -117,10 +120,19 @@ function M.scaleTo(target, args)
     return M.execute(target, action, args)
 end
 
-function M.cancel(target)
+function M.removeAllActionsFromTarget(target)
     actionManager:removeAllActionsFromTarget(target)
 end
-M.remove = M.cancel
+M.removeTarget = M.removeAllActionsFromTarget
+
+function M.removeAction(action)
+    actionManager:removeAction(action)
+end
+
+function M.removeAllActions()
+    actionManager:removeAllActions()
+end
+M.removeAll = M.removeAllActions
 
 function M.pause(target)
     actionManager:pauseTarget(target)

@@ -143,3 +143,8 @@ function clone(object)
     end
     return _copy(object)
 end
+
+-- printf
+function printf(...)
+    print(string.format(select(1, ...)))
+end

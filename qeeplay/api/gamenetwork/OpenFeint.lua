@@ -26,7 +26,6 @@ function M.request(name, params)
             ccerror("[qeeplay.api.GameNetwork.OpenFeint] ERR, request(%s) %s",
                       "unlockAchievement", "invalid achievementId")
         end
-        ccprintf("#### CCOpenFeint:unlockAchievement(%s)", achievementId)
         return CCOpenFeint:unlockAchievement(achievementId)
 
     elseif name == "GETLEADERBOARDS" then
