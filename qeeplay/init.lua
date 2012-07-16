@@ -42,7 +42,9 @@ local function checkMemory(dt)
     local used = tonumber(collectgarbage("count"))
     ccprintf(string.format("[LUA] MEMORY USED: %0.2f KB, UPTIME: %04.2fs", used, timeCount))
 end
-if DEBUG > 1 then scheduler.schedule(checkMemory, 10.0) end
+if DEBUG > 1 then
+    CCScheduler:sharedScheduler():scheduleScriptFunc(checkMemory, 2.0, false)
+end
 
 collectgarbage("setpause", 150)
 collectgarbage("setstepmul", 1000)
