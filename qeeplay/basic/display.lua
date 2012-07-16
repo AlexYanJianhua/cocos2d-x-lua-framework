@@ -1,12 +1,16 @@
 
+function ccp(x, y)
+    return CCPoint(x, y)
+end
+
+function ccsize(width, height)
+    return CCSize(width, height)
+end
+
 local M = {}
 
 local director = CCDirector:sharedDirector()
 M.director = director
-
-function ccp(x, y)
-    return CCPoint(x, y)
-end
 
 local sharedTextureCache = CCTextureCache:sharedTextureCache()
 local sharedSpriteFrameCache = CCSpriteFrameCache:sharedSpriteFrameCache()
@@ -55,18 +59,14 @@ M.isRetinaDisplay = director:isRetinaDisplay()
 M.scaleFactor     = director:getContentScaleFactor()
 
 M.screenType = "iphone"
-if M.isRetinaDisplay then
-    M.screenType = "iphonehd"
+if M.orientation == M.orientationLandscapeLeft
+    or M.orientation == M.orientationLandscapeRight then
+    if M.screenWidth == 1024 or M.screenWidth == 2048 then
+        M.screenType = "ipad"
+    end
 else
-    if M.orientation == orientationLandscapeLeft
-        or M.orientation == orientationLandscapeRight then
-        if screenWidth == 1024 then
-            M.screenType = "ipad"
-        end
-    else
-        if screenWidth == 768 then
-            M.screenType = "ipad"
-        end
+    if M.screenWidth == 768 or M.screenHeight == 1536 then
+        M.screenType = "ipad"
     end
 end
 
@@ -85,6 +85,24 @@ M.heightInPixels    = M.sizeInPixels.height
 M.centerXInPixels   = M.widthInPixels / 2
 M.centerYInPixels   = M.heightInPixels / 2
 M.animationInterval = director:getAnimationInterval()
+
+M.c_width  = 480
+M.c_height = 320
+local ptScale = 1
+if M.screenType == "ipad" then
+    M.c_height = 340
+    ptScale = 2 * 1.066666667
+end
+M.c_halfwidth  = M.c_width / 2
+M.c_halfheight = M.c_height / 2
+M.c_left       = -M.c_halfwidth
+M.c_right      = M.c_halfwidth
+M.c_top        = M.c_halfheight
+M.c_bottom     = -M.c_halfheight
+
+function xy(v)
+    return v * ptScale
+end
 
 M.COLOR_WHITE = ccc3(255, 255, 255)
 M.COLOR_BLACK = ccc3(0, 0, 0)
@@ -181,7 +199,25 @@ function M.newScene(name)
     local scene = CCScene:node()
     scene.name = name or "<none-name>"
     scene.isTouchEnabled = false
-    return M._returnScene(scene)
+    return M.extendScene(scene)
+end
+
+function M.extendScene(scene)
+    local function sceneEventHandler(eventType)
+        if eventType == kCCNodeOnEnter then
+            ccwarning("## Scene \"%s:onEnter()\"", scene.name)
+            scene.isTouchEnabled = true
+            if scene.onEnter then scene:onEnter() end
+        else
+            ccwarning("## Scene \"%s:onExit()\"", scene.name)
+            scene.isTouchEnabled = false
+            if scene.onExit then scene:onExit() end
+        end
+    end
+
+    scene:registerScriptHandler(sceneEventHandler)
+
+    return scene
 end
 
 --[[--
@@ -202,6 +238,7 @@ replaces the running scene with a new one.
 function M.replaceScene(nextScene, transition_, transitionTime, more)
     local current = director:getRunningScene()
     if current then
+        scheduler.unscheduleAll()
         if current.beforeExit then current:beforeExit() end
         nextScene = newSceneWithTransition(nextScene, transition_, transitionTime, more)
         director:replaceScene(nextScene)
@@ -240,7 +277,7 @@ local ANCHOR_POINTS = {
 }
 
 function M.align(node, anchorPoint, x, y)
-    node.anchorPoint = ANCHOR_POINTS[anchorPoint]
+    node:setAnchorPoint(ANCHOR_POINTS[anchorPoint])
     node:setPosition(x, y)
 end
 
@@ -277,6 +314,11 @@ M.newBackgroundImage = M.newBackgroundSprite
 
 function M.addSpriteFramesWithFile(plistFilename, image)
     CCSpriteFrameCache:sharedSpriteFrameCache():addSpriteFramesWithFile(plistFilename, image)
+end
+
+function M.removeSpriteFramesWithFile(plistFilename, image)
+    CCSpriteFrameCache:sharedSpriteFrameCache():removeSpriteFramesFromFile(plistFilename)
+    CCTextureCache:sharedTextureCache():removeTextureForKey(image);
 end
 
 function M.newBatchNode(image, capacity)
@@ -426,24 +468,6 @@ function M.extendSprite(node)
     end
 
     return node
-end
-
-function M._returnScene(scene)
-    local function sceneEventHandler(eventType)
-        if eventType == kCCNodeOnEnter then
-            ccprintf(string.format("## Scene \"%s:onEnter()\"", scene.name))
-            scene.isTouchEnabled = true
-            if scene.onEnter then scene:onEnter() end
-        else
-            ccprintf(string.format("## Scene \"%s:onExit()\"", scene.name))
-            scene.isTouchEnabled = false
-            if scene.onExit then scene:onExit() end
-        end
-    end
-
-    scene:registerScriptHandler(sceneEventHandler)
-
-    return scene
 end
 
 return M
