@@ -73,6 +73,12 @@ function M.new(args)
         if enterFrameHandle then
             scheduler.remove(enterFrameHandle)
         end
+
+        -- remove all event listeners
+        for i, item in ipairs(view.items) do
+            item:removeAllEventListeners()
+        end
+        view.items = {}
     end
 
     local function onTouch(event, x, y)
