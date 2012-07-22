@@ -197,7 +197,9 @@ function M.new(args)
 
         setSumHeight()
 
-        view:registerScriptHandler(cleanup)
+        view:registerScriptHandler(function(event)
+            if event == kCCNodeOnExit then cleanup() end
+        end)
     end
 
     ----
