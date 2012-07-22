@@ -3,11 +3,6 @@ local M = {}
 
 local display = require("qeeplay.basic.display")
 
-M.TOUCH_BEGAN     = CCTOUCHBEGAN
-M.TOUCH_MOVED     = CCTOUCHMOVED
-M.TOUCH_ENDED     = CCTOUCHENDED
-M.TOUCH_CANCELLED = CCTOUCHCANCELLED
-
 M.DEFAULT_TTF_FONT      = "Arial"
 M.DEFAULT_TTF_FONT_SIZE = 16
 
@@ -44,6 +39,7 @@ function M.newMenuItemImage(params)
     local imageDown     = params.imageDown
     local imageDisabled = params.imageDisabled
     local listener      = params.listener
+    local tag           = params.tag
     local x             = params.x
     local y             = params.y
 
@@ -63,6 +59,7 @@ function M.newMenuItemImage(params)
         display.extendSprite(item)
         if type(listener) == "function" then item:registerScriptTapHandler(listener) end
         if x and y then item:setPosition(x, y) end
+        if tag then item:setTag(tag) end
     end
     return item
 end
