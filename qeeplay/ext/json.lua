@@ -8,15 +8,13 @@ local _decode = cjson.decode
 function M.encode(var)
     local status, result = pcall(_encode, var)
     if status then return result end
-    ccwarning("[JSON ENCODE] %s", result)
-    return nil
+    ccerror("[qeeplay.ext.json] encode failed: %s", result)
 end
 
 function M.decode(text)
     local status, result = pcall(_decode, text)
     if status then return result end
-    ccwarning("[JSON DECODE] %s", result)
-    return nil
+    ccerror("[qeeplay.ext.json] decode failed: %s", result)
 end
 
 return M

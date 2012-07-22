@@ -11,7 +11,7 @@ if type(DEBUG) ~= "number" then DEBUG = 1 end
 io.output():setvbuf('no')
 
 local prt = function(...)
-    ccprintf("[LUA] "..string.format(...))
+    CCLuaLog("[LUA] "..string.format(...))
 end
 
 ccnotice  = function() end
@@ -40,7 +40,7 @@ local timeCount = 0
 local function checkMemory(dt)
     timeCount = timeCount + dt
     local used = tonumber(collectgarbage("count"))
-    ccprintf(string.format("[LUA] MEMORY USED: %0.2f KB, UPTIME: %04.2fs", used, timeCount))
+    CCLuaLog(string.format("[LUA] MEMORY USED: %0.2f KB, UPTIME: %04.2fs", used, timeCount))
 end
 if DEBUG > 1 then
     CCScheduler:sharedScheduler():scheduleScriptFunc(checkMemory, 2.0, false)
