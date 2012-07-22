@@ -4,7 +4,7 @@ function cctraceback()
 end
 
 function ccprintf(fmt, ...)
-    local output = string.format(fmt, select(1, ...))
+    local output = string.format(fmt, ...)
     CCLuaLog(output)
 end
 
@@ -30,7 +30,7 @@ end
 
 function ccassert(expr, message, ...)
     if expr then return expr end
-    local output = string.format(message, select(1, ...))
+    local output = string.format(message, ...)
     error(output)
 end
 
