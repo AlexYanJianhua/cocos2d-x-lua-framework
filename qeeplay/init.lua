@@ -5,6 +5,7 @@ math.random()
 math.random()
 math.random()
 
+QEEPLAY = "qeeplay-1.0"
 __QEEPLAY_GLOBALS__ = {}
 
 if type(DEBUG) ~= "number" then DEBUG = 1 end

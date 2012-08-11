@@ -5,8 +5,6 @@ Events are the principal way in which you create interactive applications. They 
 triggering responses in your program. For example, you can turn any display object into an
 interactive object.
 
-@module qeeplay.api.EventProtocol
-
 ]]
 local M = {}
 
@@ -14,73 +12,71 @@ local M = {}
 
 Turn any object into an interactive object.
 
-**Syntax:**
+**Usage:**
 
     qeeplay.api.EventProtocol.extend(object)
 
 ]]
 function M.extend(object)
     object.listeners = {}
-    -- setmetatable(object.listeners, {__mode = "v"})
 
     --[[--
 
-Adds a listener to the object’s list of listeners. When the named event occurs, the listener will be invoked and be supplied with a table representing the event.
+    Adds a listener to the object’s list of listeners. When the named event occurs, the listener will be invoked and be supplied with a table representing the event.
 
-**Syntax:**
+    **Usage:**
 
-    object:addEventListener(eventName, listener)
+        -- Create an object that listens to events
+        local player = Player.new()
+        qeeplay.api.EventProtocol.extend(player)
 
-**Example:**
+        -- Setup listener
+        local function onPlayerDead(event)
+            -- event.name   == "PLAYER_DEAD"
+            -- event.object == player
+        end
+        player:addEventListener("PLAYER_DEAD", onPlayerDead)
 
-    -- Create an object that listens to events
-    local player = Player.new()
-    qeeplay.api.EventProtocol.extend(player)
+        -- Sometime later, create an event and dispatch it
+        player:dispatchEvent({name = "PLAYER_DEAD"})
 
-    -- Setup listener
-    local function onPlayerDead(event)
-        -- event.name   == "PLAYER_DEAD"
-        -- event.object == player
-    end
-    player:addEventListener("PLAYER_DEAD", onPlayerDead)
+    ~~
 
-    -- Sometime later, create an event and dispatch it
-    player:dispatchEvent({name = "PLAYER_DEAD"})
+    @param eventName
+    String specifying the name of the event to listen for.
 
-<br />
+    @tparam function listener
+    If the event's event.name matches this string, listener will be invoked.
 
-@param eventName
-String specifying the name of the event to listen for.
+    @return Nothing.
 
-@tparam function listener
-If the event's event.name matches this string, listener will be invoked.
-
-@return Nothing.
-
-]]
+    ]]
     function object:addEventListener(eventName, listener)
         eventName = string.upper(eventName)
-        if object.listeners[eventName] == nil then object.listeners[eventName] = {} end
+        if object.listeners[eventName] == nil then
+            object.listeners[eventName] = {}
+            -- setmetatable(object.listeners[eventName], {__mode = "v"})
+        end
         local t = object.listeners[eventName]
         t[#t + 1] = listener
     end
 
     --[[--
 
-Dispatches event to object. The event parameter must be a table with a name property which is a
-string identifying the type of event. Event include a object property to the event so that your listener can know which object
-received the event.
+    Dispatches event to object. The event parameter must be a table with a name property which is a
+    string identifying the type of event. Event include a object property to the event so that your listener can know which object
+    received the event.
 
-**Syntax:**
+    **Syntax:**
 
-    object:dispatchEvent(event)
+        object:dispatchEvent(event)
 
-<br />
+    <br />
 
-@param event
-contains event properties
+    @param event
+    contains event properties
 
-]]
+    ]]
     function object:dispatchEvent(event)
         event.name = string.upper(event.name)
         event.target = object
@@ -95,12 +91,12 @@ contains event properties
 
     --[[--
 
-Removes the specified listener from the object's list of listeners so that it no longer is
-notified of events corresponding to the specified event.
+    Removes the specified listener from the object's list of listeners so that it no longer is
+    notified of events corresponding to the specified event.
 
-**Syntax:**
+    **Syntax:**
 
-    object:removeEventListener(eventName, listener)
+        object:removeEventListener(eventName, listener)
 
     ]]
     function object:removeEventListener(eventName, listener)
@@ -118,26 +114,26 @@ notified of events corresponding to the specified event.
 
     --[[--
 
-Removes all listeners for specified event from the object's list of listeners.
+    Removes all listeners for specified event from the object's list of listeners.
 
-**Syntax:**
+    **Syntax:**
 
-    object:removeAllEventListenersForEvent(eventName)
+        object:removeAllEventListenersForEvent(eventName)
 
-]]
+    ]]
     function object:removeAllEventListenersForEvent(eventName)
         object.listeners[string.upper(eventName)] = nil
     end
 
     --[[--
 
-Removes all listeners from the object's list of listeners.
+    Removes all listeners from the object's list of listeners.
 
-**Syntax:**
+    **Syntax:**
 
-    object:removeAllEventListeners()
+        object:removeAllEventListeners()
 
-]]
+    ]]
     function object:removeAllEventListeners()
         object.listeners = {}
     end

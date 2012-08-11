@@ -148,3 +148,52 @@ end
 function printf(...)
     print(string.format(select(1, ...)))
 end
+
+--[[--
+
+创建一个新类
+
+**Parameters:**
+
+-   classname: 类名称
+-   ctor: 构造函数
+-   super: 父类（可选）
+
+**Returns:**
+
+-   class: 新类
+
+]]
+function class(classname, ctor, super)
+    local cls
+    if super then
+        cls = clone(super)
+    else
+        cls = {}
+    end
+
+    if super then
+        cls.super = super
+        for k, v in pairs(super) do cls[k] = v end
+    end
+
+    cls.super     = super
+    cls.classname = classname
+    cls.ctor      = ctor
+    cls.__index   = cls
+
+    local function callctor(o, ctor, super, ...)
+        if super then callctor(o, super.ctor, super.super, ...) end
+        if ctor then ctor(o, ...) end
+    end
+
+    cls.new = function(...)
+        local o = setmetatable({}, cls)
+        -- 创建对象实例时，要按照正确的顺序调用继承层次上所有的 ctor 函数
+        callctor(o, ctor, super, ...)
+        o.class = cls
+        return o
+    end
+
+    return cls
+end

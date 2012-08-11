@@ -203,8 +203,8 @@ function M.newScene(name)
 end
 
 function M.extendScene(scene)
-    local function sceneEventHandler(eventType)
-        if eventType == kCCNodeOnEnter then
+    local function sceneEventHandler(event)
+        if event.name == "enter" then
             ccwarning("## Scene \"%s:onEnter()\"", scene.name)
             scene.isTouchEnabled = true
             if scene.onEnter then scene:onEnter() end
