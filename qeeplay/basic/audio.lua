@@ -151,7 +151,7 @@ function M.fadeMusicVolumeTo(time, volume)
         M.setMusicVolume(currentVolume)
     end
 
-    handleFadeMusicVolumeTo = scheduler.enterFrame(changeVolumeStep, false)
+    handleFadeMusicVolumeTo = scheduler.enterFrame(changeVolumeStep, scheduler.NOT_PAUSE, scheduler.GLOBAL)
 end
 
 local handleFadeToMusic = nil
@@ -164,7 +164,7 @@ function M.fadeToMusic(music, time, volume, isLoop)
     handleFadeToMusic = scheduler.performWithDelay(time + 0.1, function()
         M.playMusic(music, isLoop)
         M.fadeMusicVolumeTo(time, volume)
-    end)
+    end, scheduler.GLOBAL)
 end
 
 return M

@@ -1,6 +1,10 @@
 
 local M = {}
 
+M.GLOBAL = true
+M.PAUSED = true
+M.NOT_PAUSE = false
+
 local sharedScheduler = CCScheduler:sharedScheduler()
 local stack = {}
 
@@ -9,14 +13,18 @@ local function push(handle)
     return handle
 end
 
-function M.enterFrame(listener, isPaused)
+function M.enterFrame(listener, isPaused, isGlobal)
     if type(isPaused) ~= "boolean" then isPaused = false end
-    return push(sharedScheduler:scheduleScriptFunc(listener, 0, isPaused))
+    local handle = sharedScheduler:scheduleScriptFunc(listener, 0, isPaused)
+    if not isGlobal then push(handle) end
+    return handle
 end
 
-function M.schedule(listener, interval, isPaused)
+function M.schedule(listener, interval, isPaused, isGlobal)
     if type(isPaused) ~= "boolean" then isPaused = false end
-    return push(sharedScheduler:scheduleScriptFunc(listener, interval, isPaused))
+    local handle = sharedScheduler:scheduleScriptFunc(listener, interval, isPaused)
+    if not isGlobal then push(handle) end
+    return handle
 end
 
 function M.unschedule(handle)
@@ -38,13 +46,14 @@ function M.unscheduleAll()
 end
 M.removeAll = M.unscheduleAll
 
-function M.performWithDelay(time, listener)
+function M.performWithDelay(time, listener, isGlobal)
     local handle
     handle = sharedScheduler:scheduleScriptFunc(function()
         M.unschedule(handle)
         listener()
     end, time, false)
-    return push(handle)
+    if not isGlobal then push(handle) end
+    return handle
 end
 
 return M

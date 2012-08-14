@@ -65,7 +65,7 @@ function M.execute(target, action, args)
         scheduler.performWithDelay(delay, function()
             target:runAction(action)
             action:release()
-        end)
+        end, scheduler.GLOBAL)
     else
         target:runAction(action)
     end
@@ -74,7 +74,7 @@ function M.execute(target, action, args)
         action.onCompleteHandle = scheduler.performWithDelay(delay + time, function()
             action.onCompleteHandle = nil
             onComplete()
-        end)
+        end, scheduler.GLOBAL)
     end
 
     return action
